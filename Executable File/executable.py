@@ -3,13 +3,13 @@ import threading as th
 
 def backend():
     try:
-        sp.run(["python", r"..\..\Backend\main.py"])
+        sp.run(["python", r"Backend\main.py"])
     except:
         event.set()
 
 def frontend():
     try:
-        sp.run(["python", r"..\..\Frontend\main.py"])
+        sp.run(["python", r"Frontend\main.py"])
     except:
         event.set()
 
