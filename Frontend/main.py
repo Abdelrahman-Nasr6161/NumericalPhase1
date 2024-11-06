@@ -1,10 +1,18 @@
-## This will be our front end main file
-from kivy.app import App
-from kivy.uix.label import Label
+import flet as ft
 
-class MyApp(App):
-    def build(self):
-        return Label(text = "hello world")
-    
-if __name__ == "__main__":
-    MyApp().run()
+def main(page: ft.Page):
+    # Create a Text widget
+    text = ft.Text(value="Hello, World!")
+
+    # Create a Button widget
+    def button_click(e):
+        text.value = "Hello, Flet!"
+        page.update()
+
+    button = ft.ElevatedButton("Click Me", on_click=button_click)
+
+    # Add widgets to the page
+    page.add(text, button)
+
+# Run the app
+ft.app(target=main)
