@@ -1,23 +1,9 @@
 import numpy as np
-import time
+
 class MatrixSolver:
 
     significant_digits : float
-    def handle(self,matrix,b,operator):
-        if operator == 1:
-            try :
-                x,result = self.Gauss_Elimination(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : result.tolist()}
-            except :
-                error = self.Gauss_Elimination(matrix,b)
-                return error
-        elif operator == 2:
-            try :
-                x,result = self.Gauss_Jordan_Elimination(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : result.tolist()}
-            except :
-                error = self.Gauss_Jordan_Elimination(matrix,b)
-                return error
+
     def forward_Elimination(self,augmented_matrix,n):
         for i in range(n):
                 # Find the row with the maximum absolute value in column i
@@ -32,7 +18,7 @@ class MatrixSolver:
                 for j in range(i + 1, n):
                     factor = augmented_matrix[j, i] / augmented_matrix[i, i]
                     augmented_matrix[j, i:] -= factor * augmented_matrix[i, i:]
-        return augmented_matrix
+                return augmented_matrix
         
 
 
@@ -40,6 +26,7 @@ class MatrixSolver:
         for i in range(n-1, -1, -1):
                 # Normalize the pivot row (make the pivot element equal to 1)
                 augmented_matrix[i] /= augmented_matrix[i, i]
+                print(augmented_matrix)
                 # Eliminate the elements above the pivot
                 for j in range(i-1, -1, -1):  # Go through rows above the pivot
                     factor = augmented_matrix[j, i]
@@ -68,7 +55,7 @@ class MatrixSolver:
 
             augmented_matrix = self.forward_Elimination(augmented_matrix,n)
             
-            x, augmented_matrix = self.backward_substitution(augmented_matrix,n)
+            x, augmented_matrix = self.backward_Elimination(augmented_matrix,n)
 
             return x, augmented_matrix
         except ZeroDivisionError as e:
