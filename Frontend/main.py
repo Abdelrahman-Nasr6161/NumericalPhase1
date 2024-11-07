@@ -1,18 +1,41 @@
-import flet as ft
+from kivy.app import App
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+class MyGrid(GridLayout):
+    def __init__(self, **kwargs):
+        super(MyGrid,self).__init__(**kwargs)
 
-def main(page: ft.Page):
-    # Create a Text widget
-    text = ft.Text(value="Hello, World!")
+        self.inside = GridLayout()
+        self.inside.cols = 2
 
-    # Create a Button widget
-    def button_click(e):
-        text.value = "Hello, Flet!"
-        page.update()
+        self.cols= 1
 
-    button = ft.ElevatedButton("Click Me", on_click=button_click)
+        self.inside.add_widget(Label(text = "First Name"))
+        self.FirstName = TextInput(multiline=False)
+        self.inside.add_widget(self.FirstName)
 
-    # Add widgets to the page
-    page.add(text, button)
+        self.inside.add_widget(Label(text = "Last Name"))
+        self.LastName = TextInput(multiline=False)
+        self.inside.add_widget(self.LastName)
 
-# Run the app
-ft.app(target=main)
+        self.inside.add_widget(Label(text = "Email"))
+        self.email = TextInput(multiline=False)
+        self.inside.add_widget(self.email)
+
+        self.add_widget(self.inside)
+
+        self.submit = Button(text="Submit" , font_size=40)
+        self.submit.bind(on_press = self.pressed)
+        self.add_widget(self.submit)
+    def pressed(self,instance):
+        print("pressed")
+class MyApp(App):
+    def build(self):
+        return MyGrid()
+        
+
+if __name__ == '__main__':
+    MyApp().run()

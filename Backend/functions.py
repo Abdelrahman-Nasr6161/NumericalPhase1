@@ -3,7 +3,7 @@ import time
 class MatrixSolver:
 
     significant_digits : float
-    def handle(self,matrix,b,operator):
+    def handle(self,matrix,b,operator, epsilon, its, x0):
         if operator == 1:
             try :
                 x,result = self.Gauss_Elimination(matrix,b)
@@ -18,6 +18,14 @@ class MatrixSolver:
             except :
                 error = self.Gauss_Jordan_Elimination(matrix,b)
                 return error
+        elif operator == 4:
+            try :
+                x = self.Jacobi(matrix,b, epsilon, its, x0)
+                return {"answer" : x.tolist() , "matrix" : None}
+            except :
+                error = self.Jacobi(matrix,b, epsilon, its, x0)
+                return error
+
     def forward_Elimination(self,augmented_matrix,n):
         for i in range(n):
                 # Find the row with the maximum absolute value in column i
@@ -89,5 +97,30 @@ class MatrixSolver:
             augmented_matrix = np.where(augmented_matrix == -0.0, 0.0, augmented_matrix)
             x = augmented_matrix[:,-1]
             return x, augmented_matrix
+        except ZeroDivisionError as e:
+            return str(e)
+
+    def Jacobi(self, A: np.ndarray, b: np.ndarray, epsilon=1e-9, iterations=50, x=None):
+        try:
+            # Initialise x with zeros if none was given
+            if (x is None):
+                x = np.zeros(A.shape[0])
+
+            # Creating the matrices needed, based on equation x = D_Inverse*(b-(A-D)*x) 
+            D = np.diag(A) # Retunrs 1-D vector of diagonal elements
+            D_inverse = np.diag(1/D) # Creates a 2-D matrix of it
+            AminusD = A - np.diag(D)
+            for it in range(iterations):
+                
+                xNew = np.dot(D_inverse, (b - np.dot(AminusD, x)))
+                
+                if np.linalg.norm(xNew - x) < epsilon:
+                    print(f"Done in {it+1} iterations")
+                    return xNew
+                
+                x = xNew
+            
+            return xNew
+        
         except ZeroDivisionError as e:
             return str(e)
