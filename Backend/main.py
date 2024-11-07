@@ -4,17 +4,21 @@ import numpy as np
 import ast
 import time
 from functions import MatrixSolver
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 @app.route('/' , methods = ["POST"])
 def home():
-    matrix = request.form['matrix']
-    matrix = ast.literal_eval(matrix)
-    matrix = np.array(matrix, dtype=float)
-    b = request.form['b']
-    b = ast.literal_eval(b)
-    b = np.array(b,dtype=float)
+    
+    augmented_matrix = request.form['matrix']
+    augmented_matrix = np.array(augmented_matrix, dtype=float)
+    
+    matrix = augmented_matrix[:,:-1]
+    print(type(matrix))
+    b = augmented_matrix[:, -1]
+    print(b)
+    print(type(b))
     operation = int(request.form['operation'])
     sol = MatrixSolver()
     start_time = time.time()
