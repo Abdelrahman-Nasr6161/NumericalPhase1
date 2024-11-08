@@ -50,7 +50,7 @@ class MatrixSolver:
         return augmented_matrix
 
 
-    def forward_substitution( augmented_matrix, n):
+    def forward_substitution(self, augmented_matrix, n):
         x = np.zeros(n)
         for i in range(n):
             if augmented_matrix[i, i] == 0:
@@ -158,7 +158,7 @@ class MatrixSolver:
             else:  # infinite number of solution
                 return "System has no unique solution."
         augmented_L = np.hstack((L, B.reshape(-1, 1)))
-        Y, augmented_L = forward_substitution(augmented_L,n)
+        Y, augmented_L = self.forward_substitution(augmented_L,n)
         augmented_U = np.hstack((U, Y.reshape(-1, 1)))
-        X, augmented_U = backward_substitution(augmented_U,n)
+        X, augmented_U = self.backward_substitution(augmented_U,n)
         return X
