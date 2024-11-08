@@ -201,6 +201,7 @@ class MatrixSolver:
     def LUDoolittlesForm(self,A: np.ndarray, B: np.ndarray):
         L = np.zeros_like(A)
         U = np.zeros_like(A)
+        L_and_U = np.zeros_like(A)
         n = len(B)
         try:
             for i in range(n):
@@ -215,6 +216,14 @@ class MatrixSolver:
             # Compute Lower Triangular Matrix
                 for j in range(i + 1, n):
                     L[j][i] = (A[j][i] - sum(L[j][k] * U[k][i] for k in range(i))) / U[i][i]
+
+            # Storing L and U in one matrix
+            for i in range(n):
+                for j in range (n):
+                    if i <= j:
+                        L_and_U[i][j] = U[i][j]
+                    else:
+                        L_and_U[i][j] = L[i][j]
                 
             #solve the equation        
             augmented_LB = np.hstack((L, B.reshape(-1, 1)))
@@ -224,6 +233,6 @@ class MatrixSolver:
             else:
                 augmented_UY = np.hstack((U, Y.reshape(-1, 1)))
                 X ,augmented_UY = self.backward_substitution(augmented_UY, n)
-            return X
+            return X , L_and_U
         except ZeroDivisionError as e:
-            return str(e)
+            return str(e) 
