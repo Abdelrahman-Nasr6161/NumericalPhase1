@@ -144,7 +144,7 @@ class MatrixSolver:
         except ZeroDivisionError as e:
             return str(e)
 
-    def LUCroutsMethod(A: np.ndarray, B: np.ndarray):
+    def LUCroutsMethod(self,A: np.ndarray, B: np.ndarray):
         L = np.zeros_like(A)
         U = np.zeros_like(A)
         n = len(B)
