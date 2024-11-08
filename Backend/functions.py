@@ -27,11 +27,18 @@ class MatrixSolver:
                 return error
         elif operator == 5:
             try :
-                x = self.LUCroutsMEthod(matrix,b)
+                x = self.LUCroutsForm(matrix,b)
                 return {"answer" : x.tolist() , "matrix" : None}
             except :
-                error = self.self.LUCroutsMEthod(matrix,b)
-                return error    
+                error = self.LUCroutsForm(matrix,b)
+                return error
+        elif operator == 6:
+            try :
+                x = self.LUCholeskyForm(matrix,b)
+                return {"answer" : x.tolist() , "matrix" : None}
+            except :
+                error = self.LUCholeskyForm(matrix,b)
+                return error                
 
     def forward_Elimination(self,augmented_matrix,n):
         for i in range(n):
@@ -144,7 +151,7 @@ class MatrixSolver:
         except ZeroDivisionError as e:
             return str(e)
 
-    def LUCroutsMethod(self,A: np.ndarray, B: np.ndarray):
+    def LUCroutsForm(self,A: np.ndarray, B: np.ndarray):
         L = np.zeros_like(A)
         U = np.zeros_like(A)
         n = len(B)
@@ -152,13 +159,31 @@ class MatrixSolver:
             for j in range(i):
                 L[i][j] = A[i][j]
                 A[i] -= L[i][j] * U[j]
-            L[i][i] = A[i][i]
+            L[i][i] = A[i][i] #i==j (diagonal)
             if L[i][i] != 0:
                 U[i] = A[i] / L[i][i]
-            else:  # infinite number of solution
-                return "System has no unique solution."
+            else:  # infinite number of solution or no solution
+                return "System has no unique solution or no solution."
+        #solve the equation        
         augmented_L = np.hstack((L, B.reshape(-1, 1)))
         Y, augmented_L = self.forward_substitution(augmented_L,n)
         augmented_U = np.hstack((U, Y.reshape(-1, 1)))
         X, augmented_U = self.backward_substitution(augmented_U,n)
         return X
+    def LUCholeskyForm(self,A: np.ndarray, B: np.ndarray):
+        L = np.zeros_like(A)
+        for i in range(A.shape[0]):
+            for j in range(i):
+                s=np.sum(L[i][:j]*L[j][:j])
+                L[i][j]=(A[i][j]-s)/L[j][j]
+            s=np.sum(L[i][:i]**2)
+            L[i][i]=np.sqrt(A[i][i]-s)
+        U=L.T   #U = L transpose
+        n=len(B)
+        #solve the equation     
+        augmented_L = np.hstack((L, B.reshape(-1, 1)))
+        Y, augmented_L = self.forward_substitution(augmented_L,n)
+        augmented_U = np.hstack((U, Y.reshape(-1, 1)))
+        X, augmented_U = self.backward_substitution(augmented_U,n)
+        return X    
+
