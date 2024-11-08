@@ -151,6 +151,7 @@ class MatrixSolver:
         except ZeroDivisionError as e:
             return str(e)
 
+    
     def LUCroutsForm(self,A: np.ndarray, B: np.ndarray):
         L = np.zeros_like(A)
         U = np.zeros_like(A)
@@ -170,6 +171,8 @@ class MatrixSolver:
         augmented_U = np.hstack((U, Y.reshape(-1, 1)))
         X, augmented_U = self.backward_substitution(augmented_U,n)
         return X
+
+
     def LUCholeskyForm(self,A: np.ndarray, B: np.ndarray):
         L = np.zeros_like(A)
         for i in range(A.shape[0]):
