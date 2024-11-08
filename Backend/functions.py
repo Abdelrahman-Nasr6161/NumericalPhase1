@@ -25,7 +25,28 @@ class MatrixSolver:
             except :
                 error = self.Jacobi(matrix,b, epsilon, its, x0)
                 return error
-
+        elif operator == 5:
+            try :
+                x,result = self.LUDoolittlesForm(matrix,b)
+                return {"answer" : x.tolist() , "matrix" : result.tolist()}
+            except :
+                error = self.LUDoolittlesForm(matrix,b)
+                return error             
+        elif operator == 6:
+            try :
+                x = self.LUCroutsForm(matrix,b)
+                return {"answer" : x.tolist() , "matrix" : None}
+            except :
+                error = self.LUCroutsForm(matrix,b)
+                return error
+        elif operator == 7:
+            try :
+                x = self.LUCholeskyForm(matrix,b)
+                return {"answer" : x.tolist() , "matrix" : None}
+            except :
+                error = self.LUCholeskyForm(matrix,b)
+                return error   
+        
     def forward_Elimination(self,augmented_matrix,n):
         for i in range(n):
                 # Find the row with the maximum absolute value in column i
@@ -41,7 +62,20 @@ class MatrixSolver:
                     factor = augmented_matrix[j, i] / augmented_matrix[i, i]
                     augmented_matrix[j, i:] -= factor * augmented_matrix[i, i:]
         return augmented_matrix
-        
+
+
+    def forward_substitution(self, augmented_matrix, n):
+        x = np.zeros(n)
+        for i in range(n):
+            if augmented_matrix[i, i] == 0:
+                return "System has no unique solution."
+            x[i] = augmented_matrix[i, -1] / augmented_matrix[i, i]
+            for j in range(i + 1, n):
+                augmented_matrix[j, -1] -= augmented_matrix[j, i] * x[i]
+        # Handle negative zero values
+        x = np.where(x == -0.0, 0.0, x)
+
+        return x, augmented_matrix       
 
 
     def backward_Elimination(self,augmented_matrix,n):
@@ -67,7 +101,6 @@ class MatrixSolver:
         x = np.where(x == -0.0, 0.0, x)
         return x , augmented_matrix
     
-
 
     def Gauss_Elimination(self, A: np.ndarray, B: np.ndarray):
         try:
@@ -124,3 +157,82 @@ class MatrixSolver:
         
         except ZeroDivisionError as e:
             return str(e)
+
+    
+    def LUCroutsForm(self,A: np.ndarray, B: np.ndarray):
+        L = np.zeros_like(A)
+        U = np.zeros_like(A)
+        n = len(B)
+        for i in range(A.shape[0]):
+            for j in range(i):
+                L[i][j] = A[i][j]
+                A[i] -= L[i][j] * U[j]
+            L[i][i] = A[i][i] #i==j (diagonal)
+            if L[i][i] != 0:
+                U[i] = A[i] / L[i][i]
+            else:  # infinite number of solution or no solution
+                return "System has no unique solution or no solution."
+        #solve the equation        
+        augmented_L = np.hstack((L, B.reshape(-1, 1)))
+        Y, augmented_L = self.forward_substitution(augmented_L,n)
+        augmented_U = np.hstack((U, Y.reshape(-1, 1)))
+        X, augmented_U = self.backward_substitution(augmented_U,n)
+        return X
+
+
+    def LUCholeskyForm(self,A: np.ndarray, B: np.ndarray):
+        L = np.zeros_like(A)
+        for i in range(A.shape[0]):
+            for j in range(i):
+                s=np.sum(L[i][:j]*L[j][:j])
+                L[i][j]=(A[i][j]-s)/L[j][j]
+            s=np.sum(L[i][:i]**2)
+            L[i][i]=np.sqrt(A[i][i]-s)
+        U=L.T   #U = L transpose
+        n=len(B)
+        #solve the equation     
+        augmented_L = np.hstack((L, B.reshape(-1, 1)))
+        Y, augmented_L = self.forward_substitution(augmented_L,n)
+        augmented_U = np.hstack((U, Y.reshape(-1, 1)))
+        X, augmented_U = self.backward_substitution(augmented_U,n)
+        return X    
+
+
+    def LUDoolittlesForm(self,A: np.ndarray, B: np.ndarray):
+        L = np.zeros_like(A)
+        U = np.zeros_like(A)
+        L_and_U = np.zeros_like(A)
+        n = len(B)
+        try:
+            for i in range(n):
+                L[i][i] = 1
+            # Compute Upper Triangular Matrix
+                for j in range(i, n):
+                    U[i][j] = A[i][j] - sum(L[i][k] * U[k][j] for k in range(i))
+                
+                if U[i, i] == 0:
+                    return "Matrix is singular, no unique solution."
+                
+            # Compute Lower Triangular Matrix
+                for j in range(i + 1, n):
+                    L[j][i] = (A[j][i] - sum(L[j][k] * U[k][i] for k in range(i))) / U[i][i]
+
+            # Storing L and U in one matrix
+            for i in range(n):
+                for j in range (n):
+                    if i <= j:
+                        L_and_U[i][j] = U[i][j]
+                    else:
+                        L_and_U[i][j] = L[i][j]
+                
+            #solve the equation        
+            augmented_LB = np.hstack((L, B.reshape(-1, 1)))
+            Y , augmented_LB = self.forward_substitution(augmented_LB, n)
+            if isinstance(Y, str):  
+                return Y
+            else:
+                augmented_UY = np.hstack((U, Y.reshape(-1, 1)))
+                X ,augmented_UY = self.backward_substitution(augmented_UY, n)
+            return X , L_and_U
+        except ZeroDivisionError as e:
+            return str(e) 
