@@ -27,8 +27,8 @@ class MatrixSolver:
                 return error
         elif operator == 5:
             try :
-                x = self.LUDoolittlesForm(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : None}
+                x,result = self.LUDoolittlesForm(matrix,b)
+                return {"answer" : x.tolist() , "matrix" : result.tolist()}
             except :
                 error = self.LUDoolittlesForm(matrix,b)
                 return error             
