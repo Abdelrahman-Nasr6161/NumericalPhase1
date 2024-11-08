@@ -27,19 +27,26 @@ class MatrixSolver:
                 return error
         elif operator == 5:
             try :
+                x = self.LUDoolittlesForm(matrix,b)
+                return {"answer" : x.tolist() , "matrix" : None}
+            except :
+                error = self.LUDoolittlesForm(matrix,b)
+                return error             
+        elif operator == 6:
+            try :
                 x = self.LUCroutsForm(matrix,b)
                 return {"answer" : x.tolist() , "matrix" : None}
             except :
                 error = self.LUCroutsForm(matrix,b)
                 return error
-        elif operator == 6:
+        elif operator == 7:
             try :
                 x = self.LUCholeskyForm(matrix,b)
                 return {"answer" : x.tolist() , "matrix" : None}
             except :
                 error = self.LUCholeskyForm(matrix,b)
-                return error                
-
+                return error   
+        
     def forward_Elimination(self,augmented_matrix,n):
         for i in range(n):
                 # Find the row with the maximum absolute value in column i
@@ -190,3 +197,33 @@ class MatrixSolver:
         X, augmented_U = self.backward_substitution(augmented_U,n)
         return X    
 
+
+    def LUDoolittlesForm(self,A: np.ndarray, B: np.ndarray):
+        L = np.zeros_like(A)
+        U = np.zeros_like(A)
+        n = len(B)
+        try:
+            for i in range(n):
+                L[i][i] = 1
+            # Compute Upper Triangular Matrix
+                for j in range(i, n):
+                    U[i][j] = A[i][j] - sum(L[i][k] * U[k][j] for k in range(i))
+                
+                if U[i, i] == 0:
+                    return "Matrix is singular, no unique solution."
+                
+            # Compute Lower Triangular Matrix
+                for j in range(i + 1, n):
+                    L[j][i] = (A[j][i] - sum(L[j][k] * U[k][i] for k in range(i))) / U[i][i]
+                
+            #solve the equation        
+            augmented_LB = np.hstack((L, B.reshape(-1, 1)))
+            Y , augmented_LB = self.forward_substitution(augmented_LB, n)
+            if isinstance(Y, str):  
+                return Y
+            else:
+                augmented_UY = np.hstack((U, Y.reshape(-1, 1)))
+                X ,augmented_UY = self.backward_substitution(augmented_UY, n)
+            return X
+        except ZeroDivisionError as e:
+            return str(e)
