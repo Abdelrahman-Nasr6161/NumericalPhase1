@@ -25,6 +25,13 @@ class MatrixSolver:
             except :
                 error = self.Jacobi(matrix,b, epsilon, its, x0)
                 return error
+        elif operator == 5:
+            try :
+                x = self.LUCroutsMEthod(matrix,b)
+                return {"answer" : x.tolist() , "matrix" : None}
+            except :
+                error = self.self.LUCroutsMEthod(matrix,b)
+                return error    
 
     def forward_Elimination(self,augmented_matrix,n):
         for i in range(n):
@@ -41,7 +48,20 @@ class MatrixSolver:
                     factor = augmented_matrix[j, i] / augmented_matrix[i, i]
                     augmented_matrix[j, i:] -= factor * augmented_matrix[i, i:]
         return augmented_matrix
-        
+
+
+    def forward_substitution( augmented_matrix, n):
+        x = np.zeros(n)
+        for i in range(n):
+            if augmented_matrix[i, i] == 0:
+                return "System has no unique solution."
+            x[i] = augmented_matrix[i, -1] / augmented_matrix[i, i]
+            for j in range(i + 1, n):
+                augmented_matrix[j, -1] -= augmented_matrix[j, i] * x[i]
+        # Handle negative zero values
+        x = np.where(x == -0.0, 0.0, x)
+
+        return x, augmented_matrix       
 
 
     def backward_Elimination(self,augmented_matrix,n):
@@ -67,7 +87,6 @@ class MatrixSolver:
         x = np.where(x == -0.0, 0.0, x)
         return x , augmented_matrix
     
-
 
     def Gauss_Elimination(self, A: np.ndarray, B: np.ndarray):
         try:
@@ -124,3 +143,22 @@ class MatrixSolver:
         
         except ZeroDivisionError as e:
             return str(e)
+
+    def LUCroutsMethod(A: np.ndarray, B: np.ndarray):
+        L = np.zeros_like(A)
+        U = np.zeros_like(A)
+        n = len(B)
+        for i in range(A.shape[0]):
+            for j in range(i):
+                L[i][j] = A[i][j]
+                A[i] -= L[i][j] * U[j]
+            L[i][i] = A[i][i]
+            if L[i][i] != 0:
+                U[i] = A[i] / L[i][i]
+            else:  # infinite number of solution
+                return "System has no unique solution."
+        augmented_L = np.hstack((L, B.reshape(-1, 1)))
+        Y, augmented_L = forward_substitution(augmented_L,n)
+        augmented_U = np.hstack((U, Y.reshape(-1, 1)))
+        X, augmented_U = backward_substitution(augmented_U,n)
+        return X
