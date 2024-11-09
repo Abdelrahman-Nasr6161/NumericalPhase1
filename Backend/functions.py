@@ -162,40 +162,53 @@ class MatrixSolver:
     def LUCroutsForm(self,A: np.ndarray, B: np.ndarray):
         L = np.zeros_like(A)
         U = np.zeros_like(A)
+        L_and_U = np.zeros_like(A)
         n = len(B)
-        for i in range(A.shape[0]):
-            for j in range(i):
-                L[i][j] = A[i][j]
-                A[i] -= L[i][j] * U[j]
-            L[i][i] = A[i][i] #i==j (diagonal)
-            if L[i][i] != 0:
-                U[i] = A[i] / L[i][i]
-            else:  # infinite number of solution or no solution
-                return "System has no unique solution or no solution."
-        #solve the equation        
-        augmented_L = np.hstack((L, B.reshape(-1, 1)))
-        Y, augmented_L = self.forward_substitution(augmented_L,n)
-        augmented_U = np.hstack((U, Y.reshape(-1, 1)))
-        X, augmented_U = self.backward_substitution(augmented_U,n)
-        return X
+        try:
+            for i in range(A.shape[0]):
+                for j in range(i):
+                    L[i][j] = A[i][j]
+                    A[i] -= L[i][j] * U[j]
+                L[i][i] = A[i][i] #i==j (diagonal)
+                if L[i][i] != 0:
+                    U[i] = A[i] / L[i][i]
+                else:  # infinite number of solution or no solution
+                    return "System has no unique solution or no solution."
+            #solve the equation        
+            augmented_L = np.hstack((L, B.reshape(-1, 1)))
+            Y, augmented_L = self.forward_substitution(augmented_L,n)
+            augmented_U = np.hstack((U, Y.reshape(-1, 1)))
+            X, augmented_U = self.backward_substitution(augmented_U,n)
+            for i in range(n):
+                    for j in range (n):
+                        if i <= j:
+                            L_and_U[i][j] = U[i][j]
+                        else:
+                            L_and_U[i][j] = L[i][j]
+            return X, L_and_U
+        except ZeroDivisionError as e:
+            return str(e)
 
 
     def LUCholeskyForm(self,A: np.ndarray, B: np.ndarray):
         L = np.zeros_like(A)
-        for i in range(A.shape[0]):
-            for j in range(i):
-                s=np.sum(L[i][:j]*L[j][:j])
-                L[i][j]=(A[i][j]-s)/L[j][j]
-            s=np.sum(L[i][:i]**2)
-            L[i][i]=np.sqrt(A[i][i]-s)
-        U=L.T   #U = L transpose
-        n=len(B)
-        #solve the equation     
-        augmented_L = np.hstack((L, B.reshape(-1, 1)))
-        Y, augmented_L = self.forward_substitution(augmented_L,n)
-        augmented_U = np.hstack((U, Y.reshape(-1, 1)))
-        X, augmented_U = self.backward_substitution(augmented_U,n)
-        return X    
+        try:
+            for i in range(A.shape[0]):
+                for j in range(i):
+                    s=np.sum(L[i][:j]*L[j][:j])
+                    L[i][j]=(A[i][j]-s)/L[j][j]
+                s=np.sum(L[i][:i]**2)
+                L[i][i]=np.sqrt(A[i][i]-s)
+            U=L.T   #U = L transpose
+            n=len(B)
+            #solve the equation     
+            augmented_L = np.hstack((L, B.reshape(-1, 1)))
+            Y, augmented_L = self.forward_substitution(augmented_L,n)
+            augmented_U = np.hstack((U, Y.reshape(-1, 1)))
+            X, augmented_U = self.backward_substitution(augmented_U,n)
+            return X,L   
+        except ZeroDivisionError as e:
+            return str(e)     
 
 
     def LUDoolittlesForm(self,A: np.ndarray, B: np.ndarray):
