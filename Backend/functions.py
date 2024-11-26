@@ -20,15 +20,15 @@ class MatrixSolver:
                 return error
         elif operator == 3:
             try :
-                x = self.Jacobi(matrix,b, epsilon, its, x0, mode)
-                return {"answer" : x.tolist() , "matrix" : None}
+                x, its = self.Jacobi(matrix,b, epsilon, its, x0, mode)
+                return {"answer" : x.tolist() , "matrix" : None , "iterations" : its}
             except :
                 error = self.Jacobi(matrix,b, epsilon, its, x0, mode)
                 return error
         elif operator == 4:
             try :
-                x = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
-                return {"answer" : x.tolist() , "matrix" : None}
+                x, its = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
+                return {"answer" : x.tolist() , "matrix" : None , "iterations" : its}
             except :
                 error = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
                 return error
@@ -41,8 +41,8 @@ class MatrixSolver:
                 return error             
         elif operator == 6:
             try :
-                x = self.LUCroutsForm(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : None}
+                x,result = self.LUCroutsForm(matrix,b)
+                return {"answer" : x.tolist() , "matrix" : result.tolist()}
             except :
                 error = self.LUCroutsForm(matrix,b)
                 return error
@@ -180,14 +180,14 @@ class MatrixSolver:
 
                 if (mode == 1):
                     if (curr_it > iterations):
-                        print("Iterations", curr_it)
-                        return x_new
+                        # print("Iterations", curr_it-1, x_new)
+                        return x_new, curr_it-1
 
                     if (curr_it > max_its or np.isinf(np.linalg.norm(np.dot(A, x) - b))):
                         if (GaussSeidel): print("Divergence occured in Gauss Seidel")
                         else: print("Divergence occured in Jacobi")
-                        print("Iterations", curr_it)
-                        return x_new
+                        # print("Iterations", curr_it-1, x_new)
+                        return x_new, curr_it-1
 
                 elif (mode == 2):
                     condition = True
@@ -195,14 +195,14 @@ class MatrixSolver:
                         if (not (abs(x[i] - x_new[i]) < epsilon)):
                             condition = False
                     if (condition):
-                        print("Iterations", curr_it)
-                        return x_new
+                        # print("Iterations", curr_it-1, x_new)
+                        return x_new, curr_it-1
 
                     if (curr_it > max_its or np.isinf(np.linalg.norm(np.dot(A, x) - b))):
                         if (GaussSeidel): print("Divergence occured in Gauss Seidel")
                         else: print("Divergence occured in Jacobi")
-                        print("Iterations", curr_it)
-                        return x_new
+                        # print("Iterations", curr_it-1, x_new)
+                        return x_new, curr_it-1
 
                 x = x_new
                 curr_it += 1
