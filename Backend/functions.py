@@ -48,8 +48,8 @@ class MatrixSolver:
                 return error
         elif operator == 7:
             try :
-                x = self.LUCholeskyForm(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : None}
+                x,L = self.LUCholeskyForm(matrix,b)
+                return {"answer" : x.tolist(), "L" : L.tolist() , "matrix" : None}
             except :
                 error = self.LUCholeskyForm(matrix,b)
                 return error   
@@ -140,85 +140,73 @@ class MatrixSolver:
         except ZeroDivisionError as e:
             return str(e)
 
+        
     def Jacobi(self, A: np.ndarray, b: np.ndarray, epsilon=1e-9, iterations=50, x=None, mode=2):
-        # 'mode' is what determines wether to use iterations or epsilon for solving 
-        # 'mode' = 1 is iterations, 'mode' = 2 is epsilon (absolute relative error)
-        # if 'mode' is negative it means Gauess Seidel is applied and not Jacobi
+    # 'mode' is what determines wether to use iterations or epsilon for solving 
+    # 'mode' = 1 is iterations, 'mode' = 2 is epsilon (absolute relative error)
+    # if 'mode' is negative it means Gauess Seidel is applied and not Jacobi
         try:
             max_its = 2000
             GaussSeidel = False
-            if (mode<0):
+            if (mode < 0):
                 GaussSeidel = True
                 mode = abs(mode)
 
-            if (mode!=1 and mode!=2):
+            if (mode != 1 and mode != 2):
                 raise ValueError("Unknown Mode choosen in Jacobi.")
-            
-            # Initialise x with zeros if none was given
-            if (x is None):
-                x = np.zeros(A.shape[0])
 
-            # Testing if any diagonal element is 0
+            if (x is None or not isinstance(x, np.ndarray)):
+                x = np.zeros(A.shape[0])
+            else:
+                x = np.array(x, dtype=float)
+
             D = np.diag(A)
             if np.any(D == 0):
                 raise ValueError("Matrix contains zero diagonal elements, Jacobi method cannot proceed.")
-            
+
             curr_it = 0
-            while(True):
-                
-                # Each iteration, we iterate over all x apply the rule 
+            while (True):
                 x_new = x.copy()
                 for i in range(A.shape[0]):
-                    
                     x_new[i] = b[i]
                     for j in range(A.shape[0]):
-                        if (i==j):
+                        if (i == j):
                             continue
-                        if (GaussSeidel): x_new[i] -= A[i][j]*x_new[j]
-                        else: x_new[i] -= A[i][j]*x[j]
+                        if (GaussSeidel): 
+                            x_new[i] -= A[i][j] * x_new[j]
+                        else: 
+                            x_new[i] -= A[i][j] * x[j]
+                    x_new[i] /= A[i][i]
 
-                    x_new[i] /= A[i][i]  
-                
-                # Check if "iterations" has passed
-                if (mode==1):
+                if (mode == 1):
                     if (curr_it > iterations):
                         print("Iterations", curr_it)
                         return x_new
-                
-                    # If a max number of iterations has passed or the values of x diverge (near infinity-wise)
+
                     if (curr_it > max_its or np.isinf(np.linalg.norm(np.dot(A, x) - b))):
-                        # print("Max iterations passed with no convergence")
                         if (GaussSeidel): print("Divergence occured in Gauss Seidel")
                         else: print("Divergence occured in Jacobi")
                         print("Iterations", curr_it)
                         return x_new
 
-                # Check absolute relative error OR divergence
-                elif (mode==2):
-                    
+                elif (mode == 2):
                     condition = True
                     for i in range(A.shape[0]):
-                        # Checking absolute relative error of every x, if even one value x hasn't converged (abs error > epsilon)
-                        if ( not (abs(x[i] - x_new[i]) < epsilon) ):
+                        if (not (abs(x[i] - x_new[i]) < epsilon)):
                             condition = False
                     if (condition):
-                        # Convergence
                         print("Iterations", curr_it)
                         return x_new
-                    
-                    # If a max number of iterations has passed or the values of x diverge (near infinity-wise)
+
                     if (curr_it > max_its or np.isinf(np.linalg.norm(np.dot(A, x) - b))):
-                        # print("Max iterations passed with no convergence")
                         if (GaussSeidel): print("Divergence occured in Gauss Seidel")
                         else: print("Divergence occured in Jacobi")
                         print("Iterations", curr_it)
                         return x_new
 
-                x = x_new 
-                curr_it+=1
-
-            return x_new
-        
+                x = x_new
+                curr_it += 1
+                
         except ZeroDivisionError as e:
             return str(e)
         except ValueError as e:

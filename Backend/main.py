@@ -3,6 +3,8 @@ from flask.json import jsonify
 import numpy as np
 import ast
 import time
+
+from torch import res
 from functions import MatrixSolver
 from flask_cors import CORS
 
@@ -27,15 +29,29 @@ def home():
 
     x0 = int(request.form["x0"])
 
+    mode = int(request.form["mode"])
     sol = MatrixSolver()
     start_time = time.time()
-    result = sol.handle(matrix,b,operation,epsilon,its,x0)
+    result = sol.handle(matrix,b,operation,epsilon,its,x0,mode)
     end_time = time.time()
     elapsed_time = end_time - start_time
     if elapsed_time < 1e-6:  # Set a threshold to avoid zero time
         elapsed_time = 1e-6 
     elapsed_time = "{:.6e}".format(elapsed_time)
-    return jsonify({"result" : result , "time" : elapsed_time})
+    if(operation == 1 or 2 or 5):
+        answer = result["answer"]
+        matrix = result["matrix"]
+        print(f"answer is {answer}")
+        print(f"matrix is {matrix}")
+        return jsonify({"answer" : answer , "matrix" : matrix ,"time" : elapsed_time})
+    elif(operation == 3 or 4 or 6):
+        answer = result["matrix"]
+        return jsonify({"answer" : answer , "time" : elapsed_time})
+    elif(operation == 7):
+        answer = result["answer"]
+        L = result["L"]
+        return jsonify({"answer" : answer , "L" : L, "time" : elapsed_time})
+    
     
     
     
