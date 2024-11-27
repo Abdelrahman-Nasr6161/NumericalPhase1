@@ -145,10 +145,11 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
     # Assuming the response.json() returns a dictionary with the result.
     response_data = response.json()
     print(response_data)
-
     # Now handle the response depending on the operation type
     if operator in {1, 2, 5, 6, 7}:
         result_message = None
+        if 'error' in response_data:
+            result_message = f"Error Found : {response_data.get("error")}"
         if 'x' in response_data:
             np.set_printoptions(precision=x0 , suppress= True)
             x = response_data.get('x')
@@ -157,19 +158,17 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
                 result_message = f"Error was found during solution"
             else: 
                 result_message = "x:\n" + str(x)  # Add "x" before the result matrix
-        else :
-            result_message = f"Error was found during solution"
-
         if 'result' in response_data:
-            result_message += f"\n\nResult Matrix:\n{np.array2string(np.array(response_data['result']))}"
-            if 'L' in response_data:
-                result_message += f"\n\nL Matrix: {np.array2string(np.array(response_data['L']))}"
-            result_message += f"\n\nTime Taken: {response_data['time_taken']}"
+            result_message += f"\n\nResult Matrix:\n{np.array2string(np.array(response_data.get('result')))}"
+        if 'L' in response_data:
+            result_message += f"\n\nL Matrix:\n{np.array2string(np.array(response_data.get('L')))}"
+        if "error" not in response_data:
+            result_message += f"\n\nTime Taken: {response_data.get('time_taken')}"
         
         digDialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Result", size=20, color="blue"),  # Larger font for headline
-            content=ft.Text(result_message, size=16),  # Larger font for content
+            title=ft.Text("Result", size=26, color="blue"),  # Larger font for headline
+            content=ft.Text(result_message, size=22),  # Larger font for content
             actions=[
                 ft.TextButton("Okay", on_click=lambda e: page.close(digDialog))
             ],
@@ -179,12 +178,22 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
         page.update()
 
     elif operator in {3, 4}:
-        result_message = "x:\n" + str(response_data.get('x', ''))  # Add "x" before the result matrix
-
+        np.set_printoptions(precision=x0 , suppress= True)
         if 'x' in response_data:
-            result_message += f"\n\nSolution Matrix: {np.array2string(np.array(response_data['x']))}"
+            np.set_printoptions(precision=x0 , suppress= True)
+            x = response_data.get('x')
+            x = np.array(x)
+            if (np.any(np.isnan(x))):
+                result_message = f"Error was found during solution"
+            else: 
+                result_message = "x:\n" + str(x)  # Add "x" before the result matrix
+        else:
+            result_message = f"Error was found during solution"
+        if 'iterations' in response_data:
+            iterations = response_data.get("iterations")
+            result_message += f"\n\n iterations taken = {iterations}"
+        if "error" not in response_data:
             result_message += f"\n\nTime Taken: {response_data['time_taken']}"
-        
         digDialog = ft.AlertDialog(
             modal=True,
             title=ft.Text("Solution", size=26, color="blue"),  # Larger font for headline
@@ -202,8 +211,8 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
         error_message = response_data.get('error', 'Unknown error')
         digDialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Error", size=20, color="red"),  # Larger font for error headline
-            content=ft.Text(f"An error occurred: {error_message}", size=16),  # Larger font for error content
+            title=ft.Text("Error", size=26, color="red"),  # Larger font for error headline
+            content=ft.Text(f"An error occurred: {error_message}", size=22),  # Larger font for error content
             actions=[
                 ft.TextButton("Okay", on_click=lambda e: page.close(digDialog))
             ],

@@ -1,8 +1,12 @@
 import numpy as np
 import time
+
+from scipy import linalg
 class MatrixSolver:
     def handle(self,matrix,b,operator, epsilon, its, x0, mode):
         np.set_printoptions(precision=x0, suppress=True)
+        if (np.linalg.det(matrix) == 0):
+            return "Matrix is singular , no unique solution exists"
         if operator == 1:
             try :
                 x,result = self.Gauss_Elimination(matrix,b)
@@ -20,15 +24,15 @@ class MatrixSolver:
                 return error
         elif operator == 3:
             try :
-                x = self.Jacobi(matrix,b, epsilon, its, x0, mode)
-                return x
+                x , iterations = self.Jacobi(matrix,b, epsilon, its, x0, mode)
+                return x , iterations
             except :
                 error = self.Jacobi(matrix,b, epsilon, its, x0, mode)
                 return error
         elif operator == 4:
             try :
-                x = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
-                return x
+                x , iterations = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
+                return x , iterations
             except :
                 error = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
                 return error
@@ -251,6 +255,11 @@ class MatrixSolver:
 
     def LUCholeskyForm(self,A: np.ndarray, B: np.ndarray):
         L = np.zeros_like(A)
+        try : 
+            print(f"{np.linalg.cholesky(A)} is the answer")
+        except np.linalg.LinAlgError:
+            error = "matrix isnt positive definite"
+            return error
         try:
             for i in range(A.shape[0]):
                 for j in range(i):
