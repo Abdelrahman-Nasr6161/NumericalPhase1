@@ -262,12 +262,13 @@ def main(page: ft.Page):
     size_dropdown = ft.Dropdown(
         label="Select matrix size",
         options=[
+            ft.dropdown.Option("2", 2),
             ft.dropdown.Option("3", 3),
             ft.dropdown.Option("4", 4),
             ft.dropdown.Option("5", 5),
             ft.dropdown.Option("6", 6),
         ],
-        value="3",
+        value="2",
         width=500,
     )
 
