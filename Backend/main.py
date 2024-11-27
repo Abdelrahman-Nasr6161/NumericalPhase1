@@ -1,3 +1,4 @@
+from unittest import result
 from flask import Flask , render_template , request
 from flask.json import jsonify
 import numpy as np
@@ -10,49 +11,63 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
-@app.route('/' , methods = ["POST"])
+@app.route('/', methods=["POST"])
 def home():
-    
-    augmented_matrix = request.form['matrix']
-    augmented_matrix = ast.literal_eval(augmented_matrix)
-    augmented_matrix = np.array(augmented_matrix, dtype=float)
-    
-    matrix = augmented_matrix[:,:-1]
-    
-    b = augmented_matrix[:, -1]
+    try:
+        # Parse incoming JSON data
+        data = request.get_json()
 
-    operation = int(request.form['operation'])
+        # Extract data from JSON
+        augmented_matrix = data.get("matrix")
+        if not augmented_matrix:
+            return jsonify({"error": "Matrix data is missing"}), 400
+        augmented_matrix = np.array(augmented_matrix, dtype=float)
 
-    its = int(request.form["its"])
+        x0 = int(data.get("x0", 4))  # Default to 0 if x0 is missing
+        mode = data.get("mode")
+        its = data.get("its")
+        epsilon = data.get("epsilon")
+        operation = int(data.get("operation", -1))  # Default to -1 if operation is missing
 
-    epsilon = float(request.form["epsilon"])
+        # Process the augmented matrix
+        matrix = augmented_matrix[:, :-1]
+        b = augmented_matrix[:, -1]
 
-    x0 = int(request.form["x0"])
+        # print(f"{matrix}  \n {b} \n {mode} \n {its} \n {epsilon} \n {operation} \n {x0}")
 
-    mode = int(request.form["mode"])
-    sol = MatrixSolver()
-    start_time = time.time()
-    result = sol.handle(matrix,b,operation,epsilon,its,x0,mode)
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    if elapsed_time < 1e-6:  # Set a threshold to avoid zero time
-        elapsed_time = 1e-6 
-    elapsed_time = "{:.6e}".format(elapsed_time)
-    if(operation == 1 or 2 or 5):
-        answer = result["answer"]
-        matrix = result["matrix"]
-        print(f"answer is {answer}")
-        print(f"matrix is {matrix}")
-        return jsonify({"answer" : answer , "matrix" : matrix ,"time" : elapsed_time})
-    elif(operation == 3 or 4 or 6):
-        answer = result["matrix"]
-        return jsonify({"answer" : answer , "time" : elapsed_time})
-    elif(operation == 7):
-        answer = result["answer"]
-        L = result["L"]
-        return jsonify({"answer" : answer , "L" : L, "time" : elapsed_time})
-    
-    
+        Solver = MatrixSolver()
+        start = time.time()
+        try :
+            if operation == 1 or operation == 2 or operation == 5 or operation == 6:
+                    x , result = Solver.handle(matrix , b , operation , epsilon , its , x0 , mode)
+                    end = time.time()
+                    elapsed =  end - start
+                    print(x , result , elapsed , sep="\n")
+                    return jsonify({"x" : x.tolist(),
+                                    "result" : result.tolist(),
+                                    "time_taken" : elapsed})
+            elif operation == 3 or operation == 4:
+                    x = Solver.handle(matrix , b , operation , epsilon , its , x0 , mode)
+                    end = time.time()
+                    elapsed =  end - start
+                    print(x , elapsed , sep="\n")
+                    return jsonify({"x" : x.tolist(),
+                                    "time_taken" : elapsed})
+            elif operation == 7:
+                    x,L = Solver.handle(matrix , b , operation , epsilon , its , x0 , mode)
+                    end = time.time()
+                    elapsed =  end - start
+                    print(x , L , elapsed , sep="\n")
+                    return jsonify({"x" : x.tolist(),
+                                    "L" : L.tolist()})
+        except:
+            error = Solver.handle(matrix , b , operation , epsilon , its , x0 , mode)
+            return jsonify({"error" : error})
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+
     
     
 

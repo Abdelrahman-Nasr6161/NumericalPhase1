@@ -1,55 +1,55 @@
 import numpy as np
 import time
 class MatrixSolver:
-
-    significant_digits : float
     def handle(self,matrix,b,operator, epsilon, its, x0, mode):
+        np.set_printoptions(precision=x0, suppress=True)
         if operator == 1:
             try :
                 x,result = self.Gauss_Elimination(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : result.tolist()}
+                return x , result
             except :
                 error = self.Gauss_Elimination(matrix,b)
+                print(error)
                 return error
         elif operator == 2:
             try :
                 x,result = self.Gauss_Jordan_Elimination(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : result.tolist()}
+                return x, result
             except :
                 error = self.Gauss_Jordan_Elimination(matrix,b)
                 return error
         elif operator == 3:
             try :
                 x = self.Jacobi(matrix,b, epsilon, its, x0, mode)
-                return {"answer" : x.tolist() , "matrix" : None}
+                return x
             except :
                 error = self.Jacobi(matrix,b, epsilon, its, x0, mode)
                 return error
         elif operator == 4:
             try :
                 x = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
-                return {"answer" : x.tolist() , "matrix" : None}
+                return x
             except :
                 error = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
                 return error
         elif operator == 5:
             try :
                 x,result = self.LUDoolittlesForm(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : result.tolist()}
+                return x , result
             except :
                 error = self.LUDoolittlesForm(matrix,b)
                 return error             
         elif operator == 6:
             try :
-                x = self.LUCroutsForm(matrix,b)
-                return {"answer" : x.tolist() , "matrix" : None}
+                x , LU = self.LUCroutsForm(matrix,b)
+                return x , LU
             except :
                 error = self.LUCroutsForm(matrix,b)
                 return error
         elif operator == 7:
             try :
                 x,L = self.LUCholeskyForm(matrix,b)
-                return {"answer" : x.tolist(), "L" : L.tolist() , "matrix" : None}
+                return x, L
             except :
                 error = self.LUCholeskyForm(matrix,b)
                 return error   
@@ -117,9 +117,9 @@ class MatrixSolver:
             augmented_matrix = self.forward_Elimination(augmented_matrix,n)
             
             x, augmented_matrix = self.backward_substitution(augmented_matrix,n)
-
             return x, augmented_matrix
         except ZeroDivisionError as e:
+            print("error occured")
             return str(e)
         
 
