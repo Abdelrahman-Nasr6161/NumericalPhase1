@@ -137,10 +137,18 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
                             matrix_data.append(0.0)
 
     if error_message:
-        # Show an error message using a Snackbar
-        page.snack_bar = ft.SnackBar(content=ft.Text(error_message, color="black"))
-        page.snack_bar.open = True
+        # Create a Snackbar with the error message
+        snack_bar = ft.SnackBar(content=ft.Text(error_message, color="black"))
+        
+        # Append it to the page's overlay
+        page.overlay.append(snack_bar)
+        
+        # Open the Snackbar
+        snack_bar.open = True
+        
+        # Update the page to reflect the change
         page.update()
+    
         return
 
     # Convert matrix data to numpy array and reshape
