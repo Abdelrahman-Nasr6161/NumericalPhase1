@@ -3,8 +3,8 @@ import time
 
 from scipy import linalg
 class MatrixSolver:
-    def handle(self,matrix,b,operator, epsilon, its, x0, mode):
-        np.set_printoptions(precision=x0, suppress=True)
+    def handle(self,matrix,b,operator, epsilon, its, x0, mode,significant_digits):
+        np.set_printoptions(precision=significant_digits, suppress=True)
         if (np.linalg.det(matrix) == 0):
             return "Matrix is singular , no unique solution exists"
         if operator == 1:
