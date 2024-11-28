@@ -1,8 +1,10 @@
 from ast import mod
 import ast
+from operator import sub
 from os import error
 from turtle import width
 import flet as ft
+from matplotlib.streamplot import OutOfBounds
 import numpy as np
 from requests import post
 from sklearn import model_selection
@@ -30,7 +32,7 @@ def create_matrix_with_labels(size: int):
     return matrix
 
 # Function to handle subcategory dropdown
-def set_subCategories(e, operation_dropdown, sub_dropdown_container):
+def set_subCategories(e, operation_dropdown, sub_dropdown_container, size ):
     oper = operation_dropdown.value
 
     # Clear previous sub-dropdown if it exists
@@ -48,6 +50,13 @@ def set_subCategories(e, operation_dropdown, sub_dropdown_container):
         )
         sub_dropdown_container.controls.append(newDrop)
     elif oper == "3" or oper == "4":
+        row = ft.Row()
+        label = ft.Text("Select initial Guess : " , size=22)
+        row.controls.append(label)
+        for i in range(size):
+            cell = ft.TextField(width=40, text_align=ft.TextAlign.RIGHT, focused_border_color="red")
+            row.controls.append(cell)
+        sub_dropdown_container.controls.append(row)
         newDrop = ft.Dropdown(
             options=
             [
@@ -70,15 +79,15 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
     mode_selection = None
     matrix_data = []
     operator = page.controls[2].controls[0].value  # Operation Type
-    x0: int
+    x0 = []
+    significant_digits : int
     value_of_mode = None
     mode = None
-
     try:
-        x0 = int(significant.value)
-        x0 = int(np.clip(x0, 1, 15))
+        significant_digits = int(significant.value)
+        significant_digits = int(np.clip(significant_digits, 1, 15))
     except:
-        x0 = 4
+        significant_digits = 4
 
     try:
         operator = int(operator)
@@ -98,9 +107,15 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
                 error_message = "Please select LU sub-operation"
     elif operator == 4 or operator == 3:
         try:
-            mode_selection = page.controls[3].controls
-            mode = int(mode_selection[0].value)
-            value_of_mode = float(mode_selection[2].value)
+            for i in range(1,len(page.controls[3].controls[0].controls)):
+                cell = page.controls[3].controls[0].controls[i]
+                x0.append(float(cell.value))
+        except:
+            error_message = "Please enter initial Guess"
+        try:
+            # mode_selection = page.controls[3].controls
+            mode = int(page.controls[3].controls[1].value)
+            value_of_mode = float(page.controls[3].controls[3].value)
         except:
             error_message = "Please select Iteration method"
 
@@ -134,24 +149,26 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
     data_sent = {
         "matrix": matrix_data.tolist(),
         "x0": x0,
+        "significant_digits" : significant_digits,
         "epsilon": value_of_mode,
         "its": value_of_mode,
         "mode": mode,
         "operation": operator
     }
+    # print(f"{data_sent} is the data sent")
     # print(f" send the data : {data_sent}")
     response = post("http://127.0.0.1:5000", json=data_sent)
     
     # Assuming the response.json() returns a dictionary with the result.
     response_data = response.json()
-    print(response_data)
+    # print(f"{response_data} is the resposne received")
     # Now handle the response depending on the operation type
     if operator in {1, 2, 5, 6, 7}:
         result_message = None
         if 'error' in response_data:
             result_message = f"Error Found : {response_data.get("error")}"
         if 'x' in response_data:
-            np.set_printoptions(precision=x0 , suppress= True)
+            np.set_printoptions(precision=significant_digits, suppress= True)
             x = response_data.get('x')
             x = np.array(x)
             if (np.any(np.isnan(x))):
@@ -178,9 +195,9 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
         page.update()
 
     elif operator in {3, 4}:
-        np.set_printoptions(precision=x0 , suppress= True)
+        np.set_printoptions(precision=significant_digits , suppress= True)
         if 'x' in response_data:
-            np.set_printoptions(precision=x0 , suppress= True)
+            np.set_printoptions(precision=significant_digits , suppress= True)
             x = response_data.get('x')
             x = np.array(x)
             if (np.any(np.isnan(x))):
@@ -222,10 +239,20 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
         page.update()
 
 
-def update_matrix(event, panel, matrix_container):
+def update_matrix(event, panel, matrix_container, dropdown_container):
+    try:
+        controls = dropdown_container.controls[0].controls
+        retained = controls[0]
+        controls.clear()
+        controls.append(retained)
+        for i in range(int(panel.controls[0].value)):
+            cell = ft.TextField(width=40, text_align=ft.TextAlign.RIGHT, focused_border_color="red")
+            controls.append(cell)
+            dropdown_container.update()
+    except:
+        pass
     selected_size = int(panel.controls[0].value)
     matrix = create_matrix_with_labels(selected_size)
-
     # Clear the existing matrix controls
     matrix_container.controls.clear()
 
@@ -238,8 +265,10 @@ def update_matrix(event, panel, matrix_container):
 def set_mode(e , mode_container : ft.Column , dropdown : ft.dropdown):
     try : 
         retained_control = mode_container.controls[0]
+        retained_control2 = mode_container.controls[1]
         mode_container.controls.clear()
         mode_container.controls.append(retained_control)
+        mode_container.controls.append(retained_control2)
     except :
         pass
     mode = int(dropdown.value)
@@ -279,13 +308,14 @@ def main(page: ft.Page):
         alignment=ft.MainAxisAlignment.START,
     )
 
-    size_dropdown.on_change = lambda e: update_matrix(e, panel, matrix_container)
+    
 
     page.add(panel)
     page.add(matrix_container)
 
     # Operation Type and its subcategories
     sub_dropdown_container = ft.Column()
+    size_dropdown.on_change = lambda e: update_matrix(e, panel, matrix_container, sub_dropdown_container)
     operation_dropdown = ft.Dropdown(
         options=[
             ft.dropdown.Option("1", "Gauss Elimination"),
@@ -296,7 +326,7 @@ def main(page: ft.Page):
         ],
         label="Select Operation Type",
         width=500,
-        on_change=lambda e: set_subCategories(e, operation_dropdown, sub_dropdown_container),
+        on_change=lambda e: set_subCategories(e, operation_dropdown, sub_dropdown_container, int(size_dropdown.value)),
     )
 
     page.add(ft.Row([operation_dropdown]))
@@ -312,7 +342,7 @@ def main(page: ft.Page):
     )
     page.add(button)
     # Initialize matrix
-    update_matrix(None, panel, matrix_container)
+    update_matrix(None, panel, matrix_container, sub_dropdown_container)
 
 # Run the app
 ft.app(main)
