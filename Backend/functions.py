@@ -1,8 +1,42 @@
 import numpy as np
 import time
+import sympy as sp
 
 from scipy import linalg
+from tenacity import retry
 class MatrixSolver:
+    import sympy as sp
+
+    def alphabeticalSolution(self, matrix):
+
+        if len(matrix) != len(set(tuple(row) for row in matrix)):
+            return "No Solution For Matrix"
+    
+        # Extract the number of variables from the matrix (assuming a square matrix)
+        num_vars = len(matrix)
+
+        # Define symbolic variables for each of the unknowns
+        variables = sp.symbols(' '.join([chr(120 + i) for i in range(num_vars)]))  # This will create 'x', 'y', ...
+
+        # Convert string coefficients to symbolic variables
+        symbolic_matrix = [
+            [sp.symbols(matrix[i][j]) if isinstance(matrix[i][j], str) else matrix[i][j] for j in range(len(matrix[i]))]
+            for i in range(len(matrix))
+        ]
+
+        # Define the system of equations
+        equations = []
+
+        # Iterate through the matrix to create the equations
+        for i in range(num_vars):
+            equation = sum(symbolic_matrix[i][j] * variables[j] for j in range(num_vars))
+            equations.append(sp.Eq(equation, symbolic_matrix[i][-1]))  # The last column is the right-hand side
+
+        # Solve the system of equations
+        solutions = sp.solve(equations, variables)
+
+        return solutions
+
     def handle(self,matrix,b,operator, epsilon, its, x0, mode,significant_digits):
         np.set_printoptions(precision=significant_digits, suppress=True)
         if (np.linalg.det(matrix) == 0):

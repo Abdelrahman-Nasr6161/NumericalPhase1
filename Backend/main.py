@@ -9,6 +9,21 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
+@app.route('/alphabetical',methods =["POST"])
+def alpha():
+    data = request.get_json()
+    matrix = data.get("matrix")
+    Solver = MatrixSolver()
+    result = Solver.alphabeticalSolution(matrix)
+    try:
+        result_serializable = {str(key): str(value) for key, value in result.items()}
+    except:
+        if result == "No Solution For Matrix":
+             return {"error" : result}
+        else:
+             result_serializable = result
+    print(result_serializable)
+    return result_serializable
 @app.route('/', methods=["POST"])
 def home():
     try:

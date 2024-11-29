@@ -1,16 +1,7 @@
-from ast import mod
-import ast
-import glob
-from operator import sub
-from os import error
-from turtle import width
-from flask import request
 import flet as ft
-from matplotlib.streamplot import OutOfBounds
 import numpy as np
 from requests import post
-from sklearn import model_selection
-from torch import mode, res\
+
 
 # Function to create matrix text boxes with variable labels
 def create_matrix_with_labels(size: int):
@@ -108,6 +99,8 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
                         if isinstance(cell, ft.TextField):
                             try:
                                 value = str(cell.value)[0]
+                                if not value.isalpha():
+                                    error_message = "Please enter only alphabets"
                                 rowdata.append(value)
                             except :
                                 error_message = "Please enter valid Characters in all matrix cells."
