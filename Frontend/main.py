@@ -1,14 +1,16 @@
 from ast import mod
 import ast
+import glob
 from operator import sub
 from os import error
 from turtle import width
+from flask import request
 import flet as ft
 from matplotlib.streamplot import OutOfBounds
 import numpy as np
 from requests import post
 from sklearn import model_selection
-from torch import mode
+from torch import mode, res\
 
 # Function to create matrix text boxes with variable labels
 def create_matrix_with_labels(size: int):
@@ -32,12 +34,14 @@ def create_matrix_with_labels(size: int):
     return matrix
 
 # Function to handle subcategory dropdown
-def set_subCategories(e, operation_dropdown, sub_dropdown_container, size ):
+def set_subCategories(e, operation_dropdown, sub_dropdown_container, size , page : ft.Page):
+    
     oper = operation_dropdown.value
 
     # Clear previous sub-dropdown if it exists
     sub_dropdown_container.controls.clear()
     # If "LU Decomposition" (value = "3") is selected, add a subcategory dropdown
+
     if oper == "5":
         newDrop = ft.Dropdown(
             options=[
@@ -68,7 +72,9 @@ def set_subCategories(e, operation_dropdown, sub_dropdown_container, size ):
             on_change= lambda e : set_mode(e , sub_dropdown_container , newDrop)
         )
         sub_dropdown_container.controls.append(newDrop)
-        
+    elif oper == "0":
+        page.controls.pop(-2)
+        page.controls.pop(-3)
         
     
     # Update the container to reflect changes
@@ -93,8 +99,57 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
         operator = int(operator)
     except:
         error_message = "Please Select a Valid Operation Type"
+    if operator == 0:
+        for row in page.controls[1].controls:  # Accessing the matrix rows
+            rowdata = []
+            for col in row.controls:
+                if isinstance(col, ft.Row):
+                    for cell in col.controls:
+                        if isinstance(cell, ft.TextField):
+                            try:
+                                value = str(cell.value)[0]
+                                rowdata.append(value)
+                            except :
+                                error_message = "Please enter valid Characters in all matrix cells."
+            matrix_data.append(rowdata)
+        if error_message:
+            # Create a Snackbar with the error message
+            snack_bar = ft.SnackBar(content=ft.Text(error_message, color="black"))
 
-    if operator == 1:
+            # Append it to the page's overlay
+            page.overlay.append(snack_bar)
+
+            # Open the Snackbar
+            snack_bar.open = True
+
+            # Update the page to reflect the change
+            page.update()
+
+            return
+        json = {"matrix" : matrix_data}
+        print(json)
+        response = post("http://127.0.0.1:5000/alphabetical" , json=json)
+        print(response.json())
+        result_message = ""
+        i = 1
+        if "error" not in response.json():
+            for i,j in response.json().items():
+                result_message += f"{i} = {j} \n"
+        else:
+            result_message+=f"Error : {response.json().get("error")}"
+        digDialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Result", size=26, color="blue"),  # Larger font for headline
+            content=ft.Text(result_message, size=22),  # Larger font for content
+            actions=[
+                ft.TextButton("Okay", on_click=lambda e: page.close(digDialog))
+            ],
+            actions_alignment=ft.MainAxisAlignment.END
+        )
+        page.open(digDialog)
+        page.update()
+        return
+    elif operator == 1:
         operator = 1
     elif operator == 2:
         operator = 2
@@ -124,18 +179,19 @@ def send_to_backend(page: ft.Page, significant: ft.TextField):
     size = int(dropdown.value)
 
     # Access the matrix rows
-    for row in page.controls[1].controls:  # Accessing the matrix rows
-        for col in row.controls:
-            if isinstance(col, ft.Row):
-                for cell in col.controls:
-                    if isinstance(cell, ft.TextField):
-                        try:
-                            value = float(cell.value)
-                            matrix_data.append(value)
-                        except ValueError:
-                            error_message = "Please enter valid numbers in all matrix cells."
-                            matrix_data.append(0.0)
-
+    if operator != 0:
+        for row in page.controls[1].controls:  # Accessing the matrix rows
+            for col in row.controls:
+                if isinstance(col, ft.Row):
+                    for cell in col.controls:
+                        if isinstance(cell, ft.TextField):
+                            try:
+                                value = float(cell.value)
+                                matrix_data.append(value)
+                            except ValueError:
+                                error_message = "Please enter valid numbers in all matrix cells."
+                                matrix_data.append(0.0)
+    
     if error_message:
         # Create a Snackbar with the error message
         snack_bar = ft.SnackBar(content=ft.Text(error_message, color="black"))
@@ -326,6 +382,7 @@ def main(page: ft.Page):
     size_dropdown.on_change = lambda e: update_matrix(e, panel, matrix_container, sub_dropdown_container)
     operation_dropdown = ft.Dropdown(
         options=[
+            ft.dropdown.Option("0" ,"Alphabetic Solution"),
             ft.dropdown.Option("1", "Gauss Elimination"),
             ft.dropdown.Option("2", "Gauss-Jordan Elimination"),
             ft.dropdown.Option("5", "LU Decomposition"),
@@ -334,14 +391,15 @@ def main(page: ft.Page):
         ],
         label="Select Operation Type",
         width=500,
-        on_change=lambda e: set_subCategories(e, operation_dropdown, sub_dropdown_container, int(size_dropdown.value)),
+        on_change=lambda e: set_subCategories(e, operation_dropdown, sub_dropdown_container, int(size_dropdown.value) , page),
     )
 
     page.add(ft.Row([operation_dropdown]))
     page.add(sub_dropdown_container)
     label  = ft.Text(value="Significant Digits")
-    page.add(label)
     siginficantText = ft.TextField(hint_text="Enter Number of Significant digits" , width=500 , value="4")
+    # if operation_dropdown.value is not None and int(operation_dropdown.value) != 0:
+    page.add(label)
     page.add(siginficantText)
     button = ft.TextButton(
         text="Answer",
