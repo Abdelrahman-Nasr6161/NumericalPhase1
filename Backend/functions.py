@@ -316,6 +316,9 @@ class MatrixSolver:
         n = len(B)
         try:
             for i in range(n):
+                max_row = np.argmax(np.abs(A[i:n, i])) + i
+                A[[i, max_row]] = A[[max_row, i]]
+                B[[i, max_row]] = B[[max_row, i]]
                 L[i][i] = 1
             # Compute Upper Triangular Matrix
                 for j in range(i, n):
