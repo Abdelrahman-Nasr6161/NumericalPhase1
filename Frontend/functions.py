@@ -200,6 +200,7 @@ def handleAlphaAnswers(page : ft.Column , answers ):
         dialog_content.controls.append(text)
     if 'x' not in answers:
         text = ft.Text(size = 50 , value="The system has NO solutions")
+        dialog_content.controls.append(text)
     dialog.content = dialog_content
     page.page.open(dialog)
     page.page.update()
