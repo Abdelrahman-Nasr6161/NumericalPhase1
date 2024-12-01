@@ -155,7 +155,54 @@ def handleAnswer(page : ft.Column , answer):
     page.page.update()
 
         
-        
+def alphaBackend(event ,page : ft.Column):
+    error_message = None
+    matrix_container = get_child(page , "matrix_container")
+    matrix = []
+    for rows in matrix_container.controls:
+        row = []
+        for item in rows.controls:
+            if isinstance(item , ft.TextField):
+                try:
+                    value = str(item.value)[0]
+                    if not value.isalpha():
+                        error_message = "Please enter only alphabets"
+                    row.append(value)
+                except:
+                    error_message = "Please enter only alphabets"
+        matrix.append(row)
+    data = {
+        "matrix" : matrix
+    }
+    response = post("http://127.0.0.1:5000/alphabetical" , json=data)
+    answers = response.json()
+    handleAlphaAnswers(page , answers)
+def handleAlphaAnswers(page : ft.Column , answers ):
+    dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Result", size=26, color="blue"),  # Larger font for headline
+            actions=[
+                ft.TextButton("Okay", on_click=lambda e: page.page.close(dialog))
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+    dialog_content = ft.Column()
+    if 'x' in answers:
+        x = answers['x']
+        text = ft.Text(size= 50 , value=f"X = {x}")
+        dialog_content.controls.append(text)
     
-    
+    if 'y' in answers:
+        y = answers['y']
+        text = ft.Text(size= 50 , value=f"y = {y}")
+        dialog_content.controls.append(text)
+    if 'z' in answers:
+        z = answers['z']
+        text = ft.Text(size= 50 , value=f"z = {z}")
+        dialog_content.controls.append(text)
+    dialog.content = dialog_content
+    page.page.open(dialog)
+    page.page.update()
+
+
 
