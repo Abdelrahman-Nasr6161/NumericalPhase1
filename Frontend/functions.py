@@ -82,10 +82,8 @@ def send_to_backend(event , page : ft.Column):
         "mode" : mode,
         "significant_digits" : significant_digits
     }
-    print(data)
     response = post("http://127.0.0.1:5000" , json=data)
     answers = response.json()
-    print(answers)
     handleAnswer(page , answers)
 
 def handleAnswer(page : ft.Column , answer):
@@ -200,6 +198,8 @@ def handleAlphaAnswers(page : ft.Column , answers ):
         z = answers['z']
         text = ft.Text(size= 50 , value=f"z = {z}")
         dialog_content.controls.append(text)
+    if 'x' not in answers:
+        text = ft.Text(size = 50 , value="The system has NO solutions")
     dialog.content = dialog_content
     page.page.open(dialog)
     page.page.update()

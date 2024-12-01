@@ -5,8 +5,8 @@ class MatrixSolver:
 
     def alphabeticalSolution(self, matrix):
 
-        if len(matrix) != len(set(tuple(row) for row in matrix)):
-            return "No Solution For Matrix"
+        # if len(matrix) != len(set(tuple(row) for row in matrix)):
+        #     return "No Solution For Matrix"
     
         # Extract the number of variables from the matrix (assuming a square matrix)
         num_vars = len(matrix)

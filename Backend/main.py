@@ -30,7 +30,6 @@ def home():
         # Parse incoming JSON data
         data = request.get_json()
         # Extract data from JSON
-        # print(data)
         augmented_matrix = data.get("matrix")
         if not augmented_matrix:
             return jsonify({"error": "Matrix data is missing"}), 400
