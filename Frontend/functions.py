@@ -30,7 +30,7 @@ def send_to_backend(event , page : ft.Column):
         matrix.append(row)
     
     suboptions : ft.Column = get_child(page , "suboptions")
-    significant_text : ft.TextField = get_child(suboptions , "significant_digits")
+    significant_text : ft.TextField = get_child(get_child(suboptions , "significant_row"), "significant_digits")
     try:
         significant_digits = int(significant_text.value)
         significant_digits = int(np.clip(significant_digits , 1 , 15))
@@ -87,7 +87,9 @@ def send_to_backend(event , page : ft.Column):
     handleAnswer(page , answers)
 
 def handleAnswer(page : ft.Column , answer):
-    significant_text = get_child(get_child(page, "suboptions") , "significant_digits")
+    suboptions = get_child(page , "suboptions")
+    significant_row = get_child(suboptions , "significant_row")
+    significant_text = get_child(significant_row , "significant_digits")
     significant_digits = None
     try:
         significant_digits = int(significant_text.value)
