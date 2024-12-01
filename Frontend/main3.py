@@ -18,6 +18,7 @@ def addCells(size, matrix):
                 row.controls.append(text2)
         matrix.controls.append(row)
 def resize(event , page : ft.Column):
+    update_suboptions(None , page)
     size_dropdown : ft.Dropdown = get_child(page , "size_dropdown")
     size = int(size_dropdown.value)
     matrix_container : ft.Column = get_child(page , "matrix_container")
@@ -27,6 +28,7 @@ def resize(event , page : ft.Column):
 
     page.update()
 def initialize_matrix(page : ft.Column):
+    update_suboptions(None,page)
     matrix = get_child(page , "matrix_container")
     size = 2
 
@@ -38,7 +40,7 @@ def update_suboptions(event ,page :ft.Page ):
     suboptions = get_child(page , "suboptions")
     oper_type = int(operation.value)
     suboptions.controls.clear()
-    significant_digits = ft.TextField(hint_text="Enter number of significant digits" , width=500 , key="significant_digits")
+    significant_digits = ft.TextField(hint_text="Enter number of significant digits" , width=500 , key="significant_digits", value=4)
     if oper_type in {1,2}:
         suboptions.controls.append(significant_digits)
     elif oper_type in {3 , 4}:
@@ -51,6 +53,15 @@ def update_suboptions(event ,page :ft.Page ):
             key="mode_select",width=500
         )
         criteria = ft.TextField(hint_text="Select Criteria" , key="criteria_text_field" , width=500)
+        initial_guess_row = ft.Row(key="initial_guess_row")
+        initial_guess_label = ft.Text(value="Initial Guess" , key="initial_guess_label")
+        initial_guess_row.controls.append(initial_guess_label)
+        size_dropdown : ft.Dropdown = get_child(page , "size_dropdown")
+        size = int(size_dropdown.value)
+        for i in range(size):
+            field = ft.TextField(width=50, height=50)
+            initial_guess_row.controls.append(field)
+        suboptions.controls.append(initial_guess_row)
         suboptions.controls.append(mode_select)
         suboptions.controls.append(criteria)
         suboptions.controls.append(significant_digits)
@@ -61,7 +72,7 @@ def update_suboptions(event ,page :ft.Page ):
                 ft.dropdown.Option("2" , "Crout Decomposition"),
                 ft.dropdown.Option("3" , "Cholesky Decomposition"),
             ],
-            width= 500,value="1"
+            width= 500,value="1",key="LU_sub"
         )
         suboptions.controls.append(LU_sub_operations)
         suboptions.controls.append(significant_digits)
@@ -125,5 +136,5 @@ def main(page : ft.Page):
     page.add(tabs)
     matrixTab = page.controls[0].tabs[0].content
     initialize_matrix(matrixTab)
-    update_suboptions(None,matrixTab)
+    
 ft.app(target=main)
