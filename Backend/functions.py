@@ -310,9 +310,9 @@ class MatrixSolver:
 
 
     def LUDoolittlesForm(self,A: np.ndarray, B: np.ndarray):
-        L = np.zeros_like(A)
-        U = np.zeros_like(A)
-        L_and_U = np.zeros_like(A)
+        L = np.zeros_like(A, dtype=float)
+        U = np.zeros_like(A, dtype=float)
+        L_and_U = np.zeros_like(A, dtype=float)
         n = len(B)
         try:
             for i in range(n):
