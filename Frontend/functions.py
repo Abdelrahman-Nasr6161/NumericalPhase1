@@ -141,7 +141,7 @@ def handleAnswer(page : ft.Column , answer):
     if 'iterations' in answer:
         iterations = answer['iterations']
         text = ft.Text(size=24 , value=f"Number of iterations taken = {iterations}")
-        dialog_content.controls.append(iterations)
+        dialog_content.controls.append(text)
     if 'time_taken' in answer:
         time  = answer['time_taken']
         time_taken = ft.Text(size=24 , value=f"Time taken = {time}" , color="blue")
