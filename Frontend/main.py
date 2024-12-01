@@ -5,7 +5,7 @@ def addCells(size, matrix):
     for i in range(size):
         row = ft.Row()
         for j in range(size+1):
-            cell = ft.TextField(width=50 , height=50)
+            cell = ft.TextField(width=37 , height=37)
             row.controls.append(cell)
             if(j<size-1):
                 text = ft.Text(value=f"x{j+1}+")
@@ -161,6 +161,7 @@ def tab1():
     return tab1
 
 def main(page : ft.Page):
+    page.scroll = ft.ScrollMode.AUTO
     page.title = "System of Linear Equations"
     page.vertical_alignment = ft.MainAxisAlignment.START
     page.horizontal_alignment = ft.CrossAxisAlignment.START
