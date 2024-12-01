@@ -5,7 +5,7 @@ def addCells(size, matrix):
     for i in range(size):
         row = ft.Row()
         for j in range(size+1):
-            cell = ft.TextField(width=37 , height=37)
+            cell = ft.TextField(width=50 , height=50)
             row.controls.append(cell)
             if(j<size-1):
                 text = ft.Text(value=f"x{j+1}+")
