@@ -161,6 +161,7 @@ def tab1():
     return tab1
 
 def main(page : ft.Page):
+    page.scroll = ft.ScrollMode.AUTO
     page.title = "System of Linear Equations"
     page.vertical_alignment = ft.MainAxisAlignment.START
     page.horizontal_alignment = ft.CrossAxisAlignment.START
