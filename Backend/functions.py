@@ -320,17 +320,17 @@ class MatrixSolver:
                 A[[i, max_row]] = A[[max_row, i]]
                 B[[i, max_row]] = B[[max_row, i]]
                 L[i][i] = 1
-            # Compute Upper Triangular Matrix
+           
+            for i in range(n):
+                # Compute Upper Triangular Matrix
                 for j in range(i, n):
-                    U[i][j] = A[i][j] - sum(L[i][k] * U[k][j] for k in range(i))
-                
+                    U[i, j] = A[i, j] - np.dot(L[i, :i], U[:i, j])
+                # Compute Lower Triangular Matrix
+                for j in range(i + 1, n):
+                    L[j, i] = (A[j, i] - np.dot(L[j, :i], U[:i, i])) / U[i, i]
+                L[i, i] = 1 
                 if U[i, i] == 0:
                     return "Matrix is singular, no unique solution."
-                
-            # Compute Lower Triangular Matrix
-                for j in range(i + 1, n):
-                    L[j][i] = (A[j][i] - sum(L[j][k] * U[k][i] for k in range(i))) / U[i][i]
-
             # Storing L and U in one matrix
             for i in range(n):
                 for j in range (n):
@@ -340,13 +340,13 @@ class MatrixSolver:
                         L_and_U[i][j] = L[i][j]
                 
             #solve the equation        
-            augmented_LB = np.hstack((L, B.reshape(-1, 1)))
-            Y , augmented_LB = self.forward_substitution(augmented_LB, n)
-            if isinstance(Y, str):  
-                return Y
-            else:
-                augmented_UY = np.hstack((U, Y.reshape(-1, 1)))
-                X ,augmented_UY = self.backward_substitution(augmented_UY, n)
+            Y = np.zeros(n)
+            for i in range(n):
+                Y[i] = B[i] - np.dot(L[i, :i], Y[:i])
+            X = np.zeros(n)
+            for i in range(n - 1, -1, -1):
+                X[i] = (Y[i] - np.dot(U[i, i + 1:], X[i + 1:])) / U[i, i]
             return X , L_and_U
+        
         except ZeroDivisionError as e:
             return str(e) 
