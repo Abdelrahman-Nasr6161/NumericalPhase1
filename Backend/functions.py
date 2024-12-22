@@ -347,6 +347,7 @@ class MatrixSolver:
         except ZeroDivisionError as e:
             return str(e) 
         
+    
     def newtonRaphson(self,f,initialGuess,minRelativeError,MaxItretion):
         parsedF=parse_expr(f ,transformations="all")
 
@@ -372,3 +373,34 @@ class MatrixSolver:
             xi=xi2
 
         return xi2     
+    
+    def ModifiedNewtonRaphson(self,f,initialGuess,minRelativeError,MaxItretion):
+        parsedF=parse_expr(f ,transformations="all")
+
+        x = symbols('x')
+        
+        try:
+            finalF = sympify(parsedF)  # Replace ^ with ** for Python syntax
+        except Exception as e:
+            print(f"Invalid function: {e}")
+            exit()   
+
+        diffF= diff(finalF, x)    
+        doubleDiffF =diff(diffF,x)
+        
+        xi=initialGuess
+        for i in range(MaxItretion):
+            f_value_at_point = finalF.subs(x, xi)
+            diffF_at_point = diffF.subs(x, xi)
+            doubleDiffF_at_point = doubleDiffF.subs(x, xi)
+            if not f_value_at_point==0: 
+                xi2=xi-((f_value_at_point*diffF_at_point)/((diffF_at_point)**2-(f_value_at_point*doubleDiffF_at_point)))
+
+            else:
+                xi2=xi
+
+            if not xi==0 or xi==xi2:
+                if(xi==xi2 or abs((xi2-xi)/xi)<=minRelativeError):
+                    return xi2
+            xi=xi2
+        return xi2 
