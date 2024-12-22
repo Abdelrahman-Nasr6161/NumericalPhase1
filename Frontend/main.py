@@ -82,6 +82,66 @@ def update_suboptions(event ,page :ft.Page ):
         suboptions.controls.append(LU_sub_operations)
         suboptions.controls.append(ft.Column(controls=[significant_label , significant_digits] , key="significant_row"))
     suboptions.update()
+
+def update_suboptions_root(event, page : ft.Page ):
+    # operation choosen decides what options are shown
+    operation = get_child(page , "operation_dropdown_root")
+    # the coloumn where we'll add the options
+    suboptions_root = get_child(page , "suboptions_root")
+    oper_type = int(operation.value)
+
+    suboptions_root.controls.clear()
+
+    significant_label = ft.Text(value="Significant Digits")
+    significant_digits = ft.TextField(hint_text="Enter number of significant digits" , width=500 , key="significant_digits_root", value=15 , on_change= lambda e : e.control.focus() )
+    suboptions_root.controls.append(ft.Column(controls=[significant_label , significant_digits] , key="significant_row_root"))
+
+    epsilon_label = ft.Text(value="Tolerance (Epsilon)")
+    epsilon = ft.TextField(hint_text="Enter the epsilon" , width=300 , key="epsilon_root", value=0.00001 , on_change= lambda e : e.control.focus() )
+    suboptions_root.controls.append(ft.Column(controls=[epsilon_label , epsilon] , key="epsilon_row_root"))
+    
+    iterations_label = ft.Text(value="Max Iterations")
+    iterations = ft.TextField(hint_text="Enter number of significant digits" , width=300 , key="iterations_root", value=50 , on_change= lambda e : e.control.focus() )
+    suboptions_root.controls.append(ft.Column(controls=[iterations_label , iterations] , key="iterations_row_root"))
+    
+    # Bisection, false position has xl and xu
+    if oper_type in {1, 2}:
+        initial_interval_row = ft.Row(key="initial_interval_row")
+        initial_interval_label = ft.Text(value="Initial Interval" , key="initial_interval_label")
+        xl_field = ft.TextField(hint_text="xl", width=80, height=50 , on_change= lambda e : e.control.focus())
+        xu_field = ft.TextField(hint_text="xu", width=80, height=50 , on_change= lambda e : e.control.focus())
+
+        initial_interval_row.controls.append(initial_interval_label)
+        initial_interval_row.controls.append(xl_field)
+        initial_interval_row.controls.append(xu_field)
+
+        suboptions_root.controls.append(initial_interval_row)
+
+    # Fixed point, Original/Modified Newton-Raphson, secant x0 and possibly (Modified Newton only) m   
+    elif oper_type in {3, 4, 5, 6, 7}:
+
+        # Modified Newton-Raphson x0, 1) Sol 1 : m, 2) Sol 2 : there's multiplicity but don't know m explicitly
+        
+        if (oper_type == 5):
+            multiplicity_row = ft.Row(key="multiplicity_row")
+            multiplicity_label = ft.Text(value="Multiplicity", key="multiplicity_label")
+            m_field = ft.TextField(hint_text="m", width=100, height=50 , on_change= lambda e : e.control.focus()) 
+
+            multiplicity_row.controls.extend([multiplicity_label, m_field])
+            suboptions_root.controls.append(multiplicity_row)
+
+        initial_x_row = ft.Row(key="initial_x_row")
+        initial_x_label = ft.Text(value="Initial Guess" , key="initial_x_label")
+        x0_field = ft.TextField(hint_text="x0", width=100, height=50 , on_change= lambda e : e.control.focus())
+
+        initial_x_row.controls.append(initial_x_label)
+        initial_x_row.controls.append(x0_field)
+
+        suboptions_root.controls.append(initial_x_row)
+
+    suboptions_root.update()
+
+
 def tab2():
     tab2 = ft.Column(key="Tab2")
     matrix_panel = ft.Column(key="matrix_container")
@@ -160,6 +220,54 @@ def tab1():
     tab1.controls.append(submit_button)
     return tab1
 
+def tab3():
+    tab3 = ft.Column(key="Tab3")
+    function_input_label = ft.Text(value="Enter the function")
+    function_input = ft.TextField(
+        hint_text = "eg: sin(2*x) - x**3",
+        key = "funtion_input",
+        on_change= lambda e : e.control.focus(), 
+    )
+
+    tab3.controls.append(ft.Column(controls=[function_input_label , function_input] , key="function_input"))    
+    
+    operation_dropdown = ft.Dropdown(
+        options=[
+            ft.dropdown.Option("1" , "Bisection"),
+            ft.dropdown.Option("2" , "False-Position"),
+            ft.dropdown.Option("3" , "Fixed Point"),
+            ft.dropdown.Option("4" , "Original Newton-Raphson"),
+            ft.dropdown.Option("5" , "Modified Newton-Raphson (Known Multiplicity)"),
+            ft.dropdown.Option("6" , "Modified Newton-Raphson (Unknown Multiplicity)"),
+            ft.dropdown.Option("7" , "Secant Method"),
+        ],
+        label="Choose Operation",
+        value="1",
+        width=500,
+        key="operation_dropdown_root",
+        on_change = lambda e : update_suboptions_root(e , tab3)
+    )
+    
+    tab3.controls.append(operation_dropdown)
+
+    suboptions = ft.Column(key="suboptions_root")
+
+    tab3.controls.append(suboptions)
+
+    submit_button = ft.TextButton(
+        text="Answer",
+        key="submit_button_root",
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=4),
+            side=ft.BorderSide(color="blue", width=2),
+        ),
+        # on_click = lambda e : send_to_backend_root(e , tab3)
+    )
+
+    tab3.controls.append(submit_button)
+    return tab3
+
+
 def main(page : ft.Page):
     page.scroll = ft.ScrollMode.AUTO
     page.title = "System of Linear Equations"
@@ -170,6 +278,7 @@ def main(page : ft.Page):
         [
             ft.Tab(content=tab1(), text="Matrix Solver"),
             ft.Tab(content=tab2(), text="Alphabetical Coefficients Solver"),
+            ft.Tab(content=tab3(), text="Root Finder"),
         ],
     )
     page.add(tabs)
@@ -178,6 +287,9 @@ def main(page : ft.Page):
     alphaTab = page.controls[0].tabs[1].content
     initialize_matrix(alphaTab)
     update_suboptions(None , matrixTab)
+
+    rootFinderTab = page.controls[0].tabs[2].content
+    update_suboptions_root(None, rootFinderTab)
 
     
 ft.app(target=main)
