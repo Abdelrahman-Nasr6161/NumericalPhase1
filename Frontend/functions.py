@@ -311,11 +311,78 @@ def send_to_backend_root(event , page : ft.Column):
     print(data)
 
     # response = post("http://127.0.0.1:5000/rootFinder" , json=data)
-    # answers = response.json()
-    # handleAnswerRoot(page , answers)
+    # answer = response.json()
+    # answer = {
+    #     # 'result' : 3.2485,
+    #     'result' : -0.00475896,
+    #     'iterations' : 43,
+    #     'eps_a' : 0.000006,
+    #     'correct_sfs' : 9,
+    #     'time_taken' : 0.6,
+    #     # 'error' : None,
+    # }
+    # handleAnswerRoot(page , answer)
 
 
-def handleAnswerRoot(page : ft.Column, answers):
+def handleAnswerRoot(page : ft.Column, answer):
 
+    suboptions = get_child(page , "suboptions_root")
+    significant_digits = None
+    significant_text : ft.TextField = get_child(get_child(suboptions , "significant_row_root"), "significant_digits_root")
+    try:
+        significant_digits = int(significant_text.value)
+        significant_digits = int(np.clip(significant_digits, 1, 15))
+    except:
+        significant_digits = 15
 
-    pass
+    dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Result", size=26, color="blue"),  # Larger font for headline
+            actions=[
+                ft.TextButton("Okay", on_click=lambda e: page.page.close(dialog))
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+    )
+
+    dialog_content = ft.Column(key="dialog_content")
+
+    # A Solve button to display the approximate root if exists, 
+    # number of iterations , 
+    # approximate relative error , 
+    # number of correct significant figures, and the 
+    # execution time.
+
+    
+    if 'result' in answer:
+        result_text = ft.Text(value=f"Approximate Root Result: {answer['result']:.{significant_digits}g}",size=24 , color="blue")
+        dialog_content.controls.append(result_text)
+
+    if 'iterations' in answer:
+        iterations = answer['iterations']
+        text = ft.Text(size=24 , value=f"Number of iterations taken = {iterations}")
+        dialog_content.controls.append(text)
+
+    if "eps_a" in answer:
+        eps_a = answer['eps_a']
+        text = ft.Text(size=24 , value=f"Approximate relative error = {eps_a}")
+        dialog_content.controls.append(text)
+
+    if "correct_sfs":
+        correct_sfs = answer['correct_sfs']
+        text = ft.Text(size=24 , value=f"Number of correct significant figures = {correct_sfs}")
+        dialog_content.controls.append(text)
+
+    if 'time_taken' in answer:
+        time  = answer['time_taken']
+        text = ft.Text(size=24 , value=f"Time taken = {time}")
+        dialog_content.controls.append(text)
+
+    if "error" in answer:
+        error = answer["error"]
+        error_text = ft.Text(value=f"Error: {error}", size=24, color="red")
+        dialog_content.controls.clear()
+        dialog_content.controls.append(error_text)
+
+    dialog.content = dialog_content
+    page.page.open(dialog)
+    page.page.update()
