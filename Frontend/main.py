@@ -1,5 +1,5 @@
 import flet as ft
-from functions import alphaBackend, send_to_backend , get_child
+from functions import alphaBackend, send_to_backend, get_child, send_to_backend_root
 
 def addCells(size, matrix):
     for i in range(size):
@@ -108,8 +108,8 @@ def update_suboptions_root(event, page : ft.Page ):
     if oper_type in {1, 2}:
         initial_interval_row = ft.Row(key="initial_interval_row")
         initial_interval_label = ft.Text(value="Initial Interval" , key="initial_interval_label")
-        xl_field = ft.TextField(hint_text="xl", width=80, height=50 , on_change= lambda e : e.control.focus())
-        xu_field = ft.TextField(hint_text="xu", width=80, height=50 , on_change= lambda e : e.control.focus())
+        xl_field = ft.TextField(hint_text="xl", key="xl", width=80, height=50 , on_change= lambda e : e.control.focus())
+        xu_field = ft.TextField(hint_text="xu", key="xu", width=80, height=50 , on_change= lambda e : e.control.focus())
 
         initial_interval_row.controls.append(initial_interval_label)
         initial_interval_row.controls.append(xl_field)
@@ -118,21 +118,13 @@ def update_suboptions_root(event, page : ft.Page ):
         suboptions_root.controls.append(initial_interval_row)
 
     # Fixed point, Original/Modified Newton-Raphson, secant x0 and possibly (Modified Newton only) m   
-    elif oper_type in {3, 4, 5, 6, 7}:
+    elif oper_type in {3, 4, 5, 6}:
 
         # Modified Newton-Raphson x0, 1) Sol 1 : m, 2) Sol 2 : there's multiplicity but don't know m explicitly
         
-        if (oper_type == 5):
-            multiplicity_row = ft.Row(key="multiplicity_row")
-            multiplicity_label = ft.Text(value="Multiplicity", key="multiplicity_label")
-            m_field = ft.TextField(hint_text="m", width=100, height=50 , on_change= lambda e : e.control.focus()) 
-
-            multiplicity_row.controls.extend([multiplicity_label, m_field])
-            suboptions_root.controls.append(multiplicity_row)
-
         initial_x_row = ft.Row(key="initial_x_row")
         initial_x_label = ft.Text(value="Initial Guess" , key="initial_x_label")
-        x0_field = ft.TextField(hint_text="x0", width=100, height=50 , on_change= lambda e : e.control.focus())
+        x0_field = ft.TextField(hint_text="x0", key="x0", width=100, height=50 , on_change= lambda e : e.control.focus())
 
         initial_x_row.controls.append(initial_x_label)
         initial_x_row.controls.append(x0_field)
@@ -222,14 +214,14 @@ def tab1():
 
 def tab3():
     tab3 = ft.Column(key="Tab3")
-    function_input_label = ft.Text(value="Enter the function")
+    function_input_label = ft.Text(value="Enter the function", key="function_input_label")
     function_input = ft.TextField(
         hint_text = "eg: sin(2*x) - x**3",
-        key = "funtion_input",
+        key = "funtion_input_string",
         on_change= lambda e : e.control.focus(), 
     )
 
-    tab3.controls.append(ft.Column(controls=[function_input_label , function_input] , key="function_input"))    
+    tab3.controls.append(ft.Column(controls=[function_input_label , function_input] , key="function_input_col"))    
     
     operation_dropdown = ft.Dropdown(
         options=[
@@ -237,9 +229,8 @@ def tab3():
             ft.dropdown.Option("2" , "False-Position"),
             ft.dropdown.Option("3" , "Fixed Point"),
             ft.dropdown.Option("4" , "Original Newton-Raphson"),
-            ft.dropdown.Option("5" , "Modified Newton-Raphson (Known Multiplicity)"),
-            ft.dropdown.Option("6" , "Modified Newton-Raphson (Unknown Multiplicity)"),
-            ft.dropdown.Option("7" , "Secant Method"),
+            ft.dropdown.Option("5" , "Modified Newton-Raphson (Unknown Multiplicity)"),
+            ft.dropdown.Option("6" , "Secant Method"),
         ],
         label="Choose Operation",
         value="1",
@@ -261,7 +252,7 @@ def tab3():
             shape=ft.RoundedRectangleBorder(radius=4),
             side=ft.BorderSide(color="blue", width=2),
         ),
-        # on_click = lambda e : send_to_backend_root(e , tab3)
+        on_click = lambda e : send_to_backend_root(e , tab3)
     )
 
     tab3.controls.append(submit_button)

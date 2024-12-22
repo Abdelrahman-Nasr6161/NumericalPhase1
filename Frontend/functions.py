@@ -1,6 +1,10 @@
 import flet as ft
 import numpy as np
 from requests import post
+from sympy import symbols, sympify, lambdify
+
+
+
 def get_child(controls , key):
     child = [control for control in controls.controls if control.key == key][0]
     return child
@@ -207,5 +211,111 @@ def handleAlphaAnswers(page : ft.Column , answers ):
     page.page.open(dialog)
     page.page.update()
 
+def send_to_backend_root(event , page : ft.Column):
+
+    function_string = None
+    oper_type : ft.Dropdown = get_child(page , "operation_dropdown_root")
+    oper_type = int(oper_type.value)
+    significant_digits = None
+    epsilon = None
+    iterations = None
+    x0 = None
+    xl = None
+    xu = None
+
+    error_message = None
+    
+    suboptions : ft.Column = get_child(page , "suboptions_root")
+
+    
+    # Works Correct
+    try:
+        function_string : ft.TextField = get_child(get_child(page, "function_input_col"), "funtion_input_string")
+        function_string = function_string.value
+        x = symbols('x')
+        function_sympy = sympify(function_string)
+
+    except:
+        error_message = "Please enter a valid form of the function"
+
+    # Works Correct
+    significant_text : ft.TextField = get_child(get_child(suboptions , "significant_row_root"), "significant_digits_root")
+    try:
+        significant_digits = int(significant_text.value)
+        significant_digits = int(np.clip(significant_digits, 1, 15))
+    except:
+        significant_digits = 15
+    
+    # Works Correct
+    epsilon_text : ft.TextField = get_child(get_child(suboptions , "epsilon_row_root"), "epsilon_root")
+    try:
+        epsilon = abs(float(epsilon_text.value))
+    except:
+        epsilon = 0.00001
+
+    # Works Correct
+    iterations_text : ft.TextField = get_child(get_child(suboptions , "iterations_row_root"), "iterations_root")
+    try:
+        iterations = int(iterations_text.value)
+        iterations = int(np.clip(iterations, 1, None))
+    except:
+        iterations = 50
+
+    # Works Correct
+    if oper_type in {1, 2}:
+        try:
+            xl : ft.TextField = get_child(get_child(suboptions , "initial_interval_row"), "xl") 
+            xu : ft.TextField = get_child(get_child(suboptions , "initial_interval_row"), "xu")
+            xl = float(xl.value)
+            xu = float(xu.value)
+
+        except:
+            error_message = "Please only enter numerals"
+
+    # Works Correct
+    elif oper_type in {3, 4, 5, 6}:
+
+        try:
+            x0 : ft.TextField = get_child(get_child(suboptions , "initial_x_row"), "x0")
+            x0 = float(x0.value)
+
+        except: 
+            error_message = "Please only enter numerals"          
+        
+
+    if error_message:
+        # Create a Snackbar with the error message
+        snack_bar = ft.SnackBar(content=ft.Text(error_message, color="black"))
+        
+        page.page.overlay.append(snack_bar)
+
+        snack_bar.open = True
+        
+        page.page.update()
+        # Update the page to reflect the change
+    
+        return
 
 
+    data = {
+        "function" : function_string,
+        "operation" : oper_type,
+        "significant_digits" : significant_digits,
+        "epsilon" : epsilon,
+        "max_its" : iterations,
+        "x0" : x0,
+        "xl" : xl,
+        "xu" : xu,
+    }
+
+    print(data)
+
+    # response = post("http://127.0.0.1:5000/rootFinder" , json=data)
+    # answers = response.json()
+    # handleAnswerRoot(page , answers)
+
+
+def handleAnswerRoot(page : ft.Column, answers):
+
+
+    pass
