@@ -1,5 +1,7 @@
 import numpy as np
 import sympy as sp
+from sympy import symbols, diff, sympify
+from sympy.parsing.sympy_parser import parse_expr
 class MatrixSolver:
     import sympy as sp
 
@@ -344,3 +346,29 @@ class MatrixSolver:
         
         except ZeroDivisionError as e:
             return str(e) 
+        
+    def newtonRaphson(self,f,initialGuess,minRelativeError,MaxItretion):
+        parsedF=parse_expr(f ,transformations="all")
+
+        x = symbols('x')
+        
+        try:
+            finalF = sympify(parsedF)  # Replace ^ with ** for Python syntax
+            print(finalF)
+        except Exception as e:
+            print(f"Invalid function: {e}")
+            exit()   
+
+        diffF= diff(finalF, x)    
+
+        xi=initialGuess
+        for i in range(MaxItretion):
+            f_value_at_point = finalF.subs(x, xi)
+            diffF_at_point = diffF.subs(x, xi)
+                
+            xi2=xi-(f_value_at_point/diffF_at_point)
+            if(xi==0 or abs(xi2-xi)/xi<=minRelativeError):
+                return xi2
+            xi=xi2
+
+        return xi2     
