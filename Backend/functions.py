@@ -33,7 +33,7 @@ class MatrixSolver:
 
         return solutions
 
-    def handle(self,matrix,b,operator, epsilon, its, x0, mode,significant_digits):
+    def handle(self,matrix,b,operator, epsilon, its, x0, significant_digits):
         np.set_printoptions(precision=significant_digits, suppress=True)
         if (np.linalg.det(matrix) == 0):
             return "Matrix is singular , no unique solution exists"
@@ -54,17 +54,17 @@ class MatrixSolver:
                 return error
         elif operator == 3:
             try :
-                x , iterations = self.Jacobi(matrix,b, epsilon, its, x0, mode)
+                x , iterations = self.Jacobi(matrix,b, epsilon, its, x0, mode=1)
                 return x , iterations
             except :
-                error = self.Jacobi(matrix,b, epsilon, its, x0, mode)
+                error = self.Jacobi(matrix,b, epsilon, its, x0, mode=1)
                 return error
         elif operator == 4:
             try :
-                x , iterations = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
+                x , iterations = self.GaussSeidel(matrix,b, epsilon, its, x0, mode=1)
                 return x , iterations
             except :
-                error = self.GaussSeidel(matrix,b, epsilon, its, x0, mode)
+                error = self.GaussSeidel(matrix,b, epsilon, its, x0, mode=1)
                 return error
         elif operator == 5:
             try :
@@ -176,18 +176,17 @@ class MatrixSolver:
 
         
     def Jacobi(self, A: np.ndarray, b: np.ndarray, epsilon=1e-9, iterations=50, x=None, mode=2):
-    # 'mode' is what determines wether to use iterations or epsilon for solving 
-    # 'mode' = 1 is iterations, 'mode' = 2 is epsilon (absolute relative error)
+   
     # if 'mode' is negative it means Gauess Seidel is applied and not Jacobi
         try:
-            max_its = 2000
+            max_its = iterations
             GaussSeidel = False
             if (mode < 0):
                 GaussSeidel = True
                 mode = abs(mode)
 
-            if (mode != 1 and mode != 2):
-                raise ValueError("Unknown Mode choosen in Jacobi.")
+            # if (mode != 1 and mode != 2):
+            #     raise ValueError("Unknown Mode choosen in Jacobi.")
 
             if (x is None or not isinstance(x, np.ndarray)):
                 x = np.zeros(A.shape[0])
@@ -212,31 +211,26 @@ class MatrixSolver:
                             x_new[i] -= A[i][j] * x[j]
                     x_new[i] /= A[i][i]
 
-                if (mode == 1):
-                    if (curr_it > iterations):
-                        # print("Iterations", curr_it-1, x_new)
-                        return x_new, curr_it-1
+            
+                if (curr_it > max_its):
+                    raise ValueError("Divergence occured, max iterations reached")
+                    # return x_new, curr_it-1
 
-                    if (curr_it > max_its or np.isinf(np.linalg.norm(np.dot(A, x) - b))):
-                        if (GaussSeidel): print("Divergence occured in Gauss Seidel")
-                        else: print("Divergence occured in Jacobi")
-                        # print("Iterations", curr_it-1, x_new)
-                        return x_new, curr_it-1
+                if (np.isinf(np.linalg.norm(np.dot(A, x) - b))):
+                    if (GaussSeidel): print("Divergence occured in Gauss Seidel")
+                    else: print("Divergence occured in Jacobi")
+                    raise ValueError("Divergence occured, overflow happened")
+                    # return x_new, curr_it-1
 
-                elif (mode == 2):
-                    condition = True
-                    for i in range(A.shape[0]):
-                        if (not (abs(x[i] - x_new[i]) < epsilon)):
-                            condition = False
-                    if (condition):
-                        # print("Iterations", curr_it-1, x_new)
-                        return x_new, curr_it-1
+            
+                condition = True
+                for i in range(A.shape[0]):
+                    if (not (abs(x[i] - x_new[i]) < epsilon)):
+                        condition = False
+                if (condition):
+                    # print("Iterations", curr_it-1, x_new)
+                    return x_new, curr_it-1
 
-                    if (curr_it > max_its or np.isinf(np.linalg.norm(np.dot(A, x) - b))):
-                        if (GaussSeidel): print("Divergence occured in Gauss Seidel")
-                        else: print("Divergence occured in Jacobi")
-                        # print("Iterations", curr_it-1, x_new)
-                        return x_new, curr_it-1
 
                 x = x_new
                 curr_it += 1

@@ -48,15 +48,10 @@ def update_suboptions(event ,page :ft.Page ):
     if oper_type in {1,2}:
         suboptions.controls.append(ft.Column(controls=[significant_label , significant_digits] , key="significant_row"))
     elif oper_type in {3 , 4}:
-        mode_select = ft.Dropdown(
-            options=[
-                ft.dropdown.Option("1" , "Iterative"),
-                ft.dropdown.Option("2" , "Relative Error"),
-            ],
-            value="1",
-            key="mode_select",width=500
-        )
-        criteria = ft.TextField(hint_text="Select Criteria" , key="criteria_text_field" , width=500, on_change= lambda e : e.control.focus())
+        
+        criteria1 = ft.TextField(hint_text="Enter max iterations" , key="its_text_field" , width=500, on_change= lambda e : e.control.focus())
+        criteria2 = ft.TextField(hint_text="Enter relative error" , key="eps_text_field" , width=500, on_change= lambda e : e.control.focus())
+        
         initial_guess_row = ft.Row(key="initial_guess_row")
         initial_guess_label = ft.Text(value="Initial Guess" , key="initial_guess_label")
         initial_guess_row.controls.append(initial_guess_label)
@@ -66,8 +61,8 @@ def update_suboptions(event ,page :ft.Page ):
             field = ft.TextField(width=50, height=50 , on_change= lambda e : e.control.focus())
             initial_guess_row.controls.append(field)
         suboptions.controls.append(initial_guess_row)
-        suboptions.controls.append(mode_select)
-        suboptions.controls.append(criteria)
+        suboptions.controls.append(criteria1)
+        suboptions.controls.append(criteria2)
         suboptions.controls.append(ft.Column(controls=[significant_label , significant_digits] , key="significant_row"))
     elif oper_type == 5:
         LU_sub_operations = ft.Dropdown(

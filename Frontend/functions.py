@@ -11,8 +11,8 @@ def get_child(controls , key):
 def send_to_backend(event , page : ft.Column):
     error_message = None
     x0 = []
-    criteria = None
-    mode = None
+    criteria_its = None
+    criteria_eps = None
     significant_digits = None
     operation_dropdown : ft.Dropdown = get_child(page , "operation_dropdown")
     try:
@@ -49,10 +49,13 @@ def send_to_backend(event , page : ft.Column):
             "Please choose a valid LU Decomposition Method"
     elif operator_type in {3,4}:
         try:
-            mode_select : ft.Dropdown = get_child(suboptions , "mode_select")
-            mode = int(mode_select.value)
-            criteria_text : ft.TextField = get_child(suboptions , "criteria_text_field")
-            criteria = float(criteria_text.value)
+            
+            criteria_its_text : ft.TextField = get_child(suboptions , "its_text_field")
+            criteria_its = float(criteria_its_text.value)
+
+            criteria_eps_text : ft.TextField = get_child(suboptions , "eps_text_field")
+            criteria_eps = float(criteria_eps_text.value)
+
         except:
             error_message = "Please select a valid iteration method and criteria"
         intitial_guess_row : ft.Row = get_child(suboptions , "initial_guess_row")
@@ -81,9 +84,9 @@ def send_to_backend(event , page : ft.Column):
         "matrix" : matrix,
         "operation" : operator_type,
         "x0" : x0,
-        "epsilon" : criteria,
-        "its" : criteria,
-        "mode" : mode,
+        "epsilon" : criteria_eps,
+        "its" : criteria_its,
+        # "mode" : mode,
         "significant_digits" : significant_digits
     }
     response = post("http://127.0.0.1:5000" , json=data)
@@ -114,7 +117,7 @@ def handleAnswer(page : ft.Column , answer):
         x = answer['x']
         x_column = ft.Column(key="x_column")
         for i in x:
-            label = ft.Text(value=f"{i:.{significant_digits}f}")
+            label = ft.Text(value=f"{i:.{significant_digits}g}")
             x_column.controls.append(label)
         dialog_content.controls.append(x_vector)
         dialog_content.controls.append(x_column)
@@ -125,7 +128,7 @@ def handleAnswer(page : ft.Column , answer):
         for row in result:
             r = ft.Row()
             for i in row:
-                text = ft.Text(value=f"{i:.{significant_digits}f}")
+                text = ft.Text(value=f"{i:.{significant_digits}g}")
                 r.controls.append(text)
             result_answer.controls.append(r)
         dialog_content.controls.append(result_vector)

@@ -40,7 +40,7 @@ def home():
         # print(x0)
         # return jsonify("hello")
         significant_digits = data.get("significant_digits")
-        mode = data.get("mode")
+        # mode = data.get("mode")
         its = data.get("its")
         epsilon = data.get("epsilon")
         operation = int(data.get("operation", 1)) 
@@ -52,7 +52,7 @@ def home():
         start = time.time()
         try :
             if operation == 1 or operation == 2 or operation == 5 or operation == 6:
-                    x , result = Solver.handle(matrix , b , operation , epsilon , its , x0 , mode , significant_digits)
+                    x , result = Solver.handle(matrix , b , operation , epsilon , its , x0 , significant_digits)
                     end = time.time()
                     elapsed =  end - start
                     elapsed = float(np.clip(elapsed , 1e-6, None))
@@ -61,7 +61,7 @@ def home():
                                     "result" : result.tolist(),
                                     "time_taken" : elapsed})
             elif operation == 3 or operation == 4:
-                    x , iterations = Solver.handle(matrix , b , operation , epsilon , its , x0 , mode, significant_digits)
+                    x , iterations = Solver.handle(matrix , b , operation , epsilon , its , x0 , significant_digits)
                     end = time.time()
                     elapsed =  end - start
                     elapsed = float(np.clip(elapsed , 1e-6, None))
@@ -71,7 +71,7 @@ def home():
                                     "iterations" : iterations,
                                     "time_taken" : elapsed})
             elif operation == 7:
-                    x,L = Solver.handle(matrix , b , operation , epsilon , its , x0 , mode, significant_digits)
+                    x,L = Solver.handle(matrix , b , operation , epsilon , its , x0 , significant_digits)
                     end = time.time()
                     elapsed =  end - start
                     elapsed = float(np.clip(elapsed , 1e-6, None))
@@ -80,7 +80,7 @@ def home():
                                     "L" : L.tolist(),
                                     "time_taken" : elapsed})
         except:
-            error = Solver.handle(matrix , b , operation , epsilon , its , x0 , mode, significant_digits)
+            error = Solver.handle(matrix , b , operation , epsilon , its , x0 , significant_digits)
             return jsonify({"error" : error})
     except:
         return jsonify({"error" : "an error has occured"})
