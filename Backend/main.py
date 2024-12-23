@@ -1,3 +1,4 @@
+from calendar import c
 from flask import Flask  , request
 from flask.json import jsonify
 import numpy as np
@@ -89,14 +90,47 @@ def home():
 @app.route('/roots', methods=["POST"])
 def root():
     data = request.get_json()
+    print(request.get_json())
+
     function = data.get("function")
     operation = data.get("operation")
     significat_digits = data.get("significant_digits")
     max_its = data.get("max_its")
     x0 = data.get("x0")
+    epsilon = data.get("epsilon")
     x1 = data.get("x1")
     xl = data.get("xl")
     xu = data.get("xu")
     Root = RootFinder()
+    result = None
+    if operation == 3:
+        try:
+            result = Root.fixedPointMethod(function , x0 , epsilon , max_its)
+            return jsonify({"result" : result})
+        except:
+            result = str(Root.fixedPointMethod(function , x0 , epsilon , max_its))
+            return jsonify({"error" : result})
+    elif operation == 4:
+        try:
+            result = Root.newtonRaphson(function , x0 , epsilon , max_its)
+            return jsonify({"result" : result})
+        except:
+            result = str(Root.newtonRaphson(function , x0 , epsilon , max_its))
+            return jsonify({"error" : result})
+    elif operation == 5:
+        try:
+            result = Root.ModifiedNewtonRaphson(function , xl , xu , epsilon , max_its)
+            return jsonify({"result" : result})
+        except:
+            result = str(Root.ModifiedNewtonRaphson(function , xl , xu , epsilon , max_its))
+            return jsonify({"error" : result})
+    elif operation == 6:
+        try:
+            result = Root.secantMethod(function , x0 , x1 , epsilon , max_its)
+            return jsonify({"result" : result})
+        except:
+            result = str(Root.secantMethod(function , x0 , x1 , epsilon , max_its))
+            return jsonify({"error" : result})
+    
 if __name__ == "__main__":
     app.run(debug=True)

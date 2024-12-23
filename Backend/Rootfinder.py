@@ -63,7 +63,7 @@ class RootFinder:
             xi=xi2
         return xi2 
     
-    def fixedPointMethod(g_exp, initial_guess, eps=1e-5, max_it=50):
+    def fixedPointMethod(self, g_exp, initial_guess, eps=1e-5, max_it=50):
         try:
             x = sp.symbols('x')
             g = sp.sympify(g_exp)
@@ -106,7 +106,7 @@ class RootFinder:
         except Exception as e:
             return {f"An error occurred during computation: {e}"}
 
-    def secantMethod(f_expression, x0, x1, epsilon=1e-5, max_iterations=50):
+    def secantMethod(self, f_expression, x0, x1, epsilon=1e-5, max_iterations=50):
         try:
             x = sp.symbols('x')
             f = sp.sympify(f_expression)
