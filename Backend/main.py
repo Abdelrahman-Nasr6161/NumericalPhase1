@@ -8,7 +8,7 @@ import time
 from MatrixSolver import MatrixSolver
 from flask_cors import CORS
 
-from Rootfinder import RootFinder
+from Rootfinder import ConvergenceError, RootFinder
 
 app = Flask(__name__)
 CORS(app)
@@ -103,7 +103,31 @@ def root():
     xu = data.get("xu")
     Root = RootFinder()
     result = None
-    if operation == 3:
+    if operation == 1:
+        try:
+            result = Root.bisectionMethod(function , xl , xu , epsilon , max_its)
+            return jsonify({"result" : result})
+        except ConvergenceError as e:
+            return jsonify({"error" : str(e)})
+        except ValueError as e:
+            return jsonify({"error" : str(e)})
+        except:
+            result = str(Root.bisectionMethod(function , xl , xu , epsilon , max_its))
+            return jsonify({"error" : result})
+    elif operation == 2:
+        try:
+            result = Root.falsePositionMethod(function , xl , xu , epsilon , max_its)
+            return jsonify({"result" : result})
+        except ConvergenceError as e:
+            return jsonify({"error" : str(e)})
+        except ValueError as e:
+            return jsonify({"error" : str(e)})
+        except Exception as e:
+            print(e)
+            result = str(Root.falsePositionMethod(function , xl , xu , epsilon , max_its))
+            print(result)
+            return jsonify({"error" : result})
+    elif operation == 3:
         try:
             result = Root.fixedPointMethod(function , x0 , epsilon , max_its)
             return jsonify({"result" : result})

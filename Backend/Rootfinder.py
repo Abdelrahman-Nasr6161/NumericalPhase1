@@ -4,8 +4,97 @@ import sympy as sp
 from sympy import symbols, diff, sympify
 from sympy.parsing.sympy_parser import parse_expr
 import time
-
+class ConvergenceError(Exception):
+    pass
 class RootFinder:
+    def bisectionMethod(self, f_expression, xl, xu, epsilon=1e-5, max_iterations=50):
+        start = time.time()
+        parsedF = parse_expr(f_expression, transformations="all")
+
+        x = symbols('x')
+
+        try:
+            f = sympify(parsedF)
+        except Exception as e:
+            return f"Invalid function expression: {e}"
+        f_xl = f.subs(x, xl)
+        f_xu = f.subs(x, xu)
+        if f_xl * f_xu > 0:
+            raise ValueError("The function does not change sign over the given interval. The method cannot proceed.")        
+        iteration = 0
+        xr = xl
+        error = float('inf')
+        while error > epsilon and iteration < max_iterations:
+            xr_old = xr
+            xr = (xl + xu) / 2
+            f_xr = f.subs(x, xr)
+            f_xl = f.subs(x, xl)
+            error = abs((xr - xr_old) / xr) if xr != 0 else 0
+            iteration += 1
+            if f_xr == 0:
+                break
+            if f_xl * f_xr < 0:
+                xu = xr
+            else:
+                xl = xr
+        if iteration == max_iterations:
+            raise ConvergenceError("The method did not converge within the maximum number of iterations.")
+        else:
+            end = time.time()
+            elapsed = end - start
+            correct_sfs = -int(sp.log(error, 10).evalf()) if error > 0 else 0
+            return {
+                "root": xr,
+                "iterations": iteration,
+                "relative_error": error,
+                "time_taken": elapsed,
+                "significant_figures": correct_sfs,
+            }
+    def falsePositionMethod(self, f_expression, xl, xu, epsilon=1e-5, max_iterations=50):
+        start = time.time()
+        parsedF = parse_expr(f_expression, transformations="all")
+
+        x = symbols('x')
+
+        try:
+            f = sympify(parsedF)
+        except Exception as e:
+            return f"Invalid function expression: {e}"
+        f_xl = f.subs(x, xl)
+        f_xu = f.subs(x, xu)
+        if f_xl * f_xu > 0:
+            raise ValueError("The function does not change sign over the given interval. The method cannot proceed.")
+        iteration = 0
+        xr = xl
+        error = float('inf')
+        while error > epsilon and iteration < max_iterations:
+            xr_old = xr
+            xr = xu - (f.subs(x, xu) * (xl - xu)) / (f.subs(x, xl) - f.subs(x, xu))
+            f_xr = f.subs(x, xr)
+            f_xl = f.subs(x, xl)
+            error = abs((xr - xr_old) / xr) if xr != 0 else 0
+            iteration += 1
+            if f_xr == 0:
+                break
+            if f_xl * f_xr < 0:
+                xu = xr
+            else:
+                xl = xr
+            
+            
+        if iteration == max_iterations:
+            raise ConvergenceError("The method did not converge within the maximum number of iterations.")
+        else:
+            end = time.time()
+            elapsed = end - start
+            correct_sfs = -int(sp.log(error, 10).evalf()) if error > 0 else 0
+            return {
+                "root": float(xr),
+                "iterations": iteration,
+                "relative_error": float(error),
+                "time_taken": elapsed,
+                "significant_figures": correct_sfs,
+            }
     def newtonRaphson(self,f,initialGuess,minRelativeError,MaxItretion):
         parsedF=parse_expr(f ,transformations="all")
 
