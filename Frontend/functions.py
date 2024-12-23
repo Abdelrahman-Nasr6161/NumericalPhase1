@@ -321,16 +321,24 @@ def send_to_backend_root(event , page : ft.Column):
 
     response = post("http://127.0.0.1:5000/roots" , json=data)
     answer = response.json()
+    if "result" in answer:
+        result = answer["result"]
+
+    elif "error" in answer:
+        result = answer["error"]
+
     # answer = {
-    #     # 'result' : 3.2485,
-    #     'result' : -0.00475896,
+    #     # 'root' : 3.2485,
+    #     'root' : -0.00475896,
     #     'iterations' : 43,
-    #     'eps_a' : 0.000006,
-    #     'correct_sfs' : 9,
+    #     'relative_error' : 0.000006,
+    #     'significant_figures' : 9,
     #     'time_taken' : 0.6,
     #     # 'error' : None,
     # }
-    handleAnswerRoot(page , answer)
+    
+    print(answer)
+    handleAnswerRoot(page , result)
 
 
 def handleAnswerRoot(page : ft.Column, answer):
@@ -362,8 +370,8 @@ def handleAnswerRoot(page : ft.Column, answer):
     # execution time.
 
     
-    if 'result' in answer:
-        result_text = ft.Text(value=f"Approximate Root Result: {answer['result']:.{significant_digits}g}",size=24 , color="blue")
+    if 'root' in answer:
+        result_text = ft.Text(value=f"Approximate Root Result: {answer['root']:.{significant_digits}g}",size=24 , color="blue")
         dialog_content.controls.append(result_text)
 
     if 'iterations' in answer:
@@ -371,13 +379,13 @@ def handleAnswerRoot(page : ft.Column, answer):
         text = ft.Text(size=24 , value=f"Number of iterations taken = {iterations}")
         dialog_content.controls.append(text)
 
-    if "eps_a" in answer:
-        eps_a = answer['eps_a']
+    if "relative_error" in answer:
+        eps_a = answer['relative_error']
         text = ft.Text(size=24 , value=f"Approximate relative error = {eps_a}")
         dialog_content.controls.append(text)
 
-    if "correct_sfs":
-        correct_sfs = answer['correct_sfs']
+    if "significant_figures" in answer:
+        correct_sfs = answer['significant_figures']
         text = ft.Text(size=24 , value=f"Number of correct significant figures = {correct_sfs}")
         dialog_content.controls.append(text)
 
