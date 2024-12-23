@@ -4,8 +4,10 @@ import numpy as np
 import time
 
 # from torch import res
-from functions import MatrixSolver
+from MatrixSolver import MatrixSolver
 from flask_cors import CORS
+
+from Rootfinder import RootFinder
 
 app = Flask(__name__)
 CORS(app)
@@ -84,5 +86,17 @@ def home():
             return jsonify({"error" : error})
     except:
         return jsonify({"error" : "an error has occured"})
+@app.route('/roots', methods=["POST"])
+def root():
+    data = request.get_json()
+    function = data.get("function")
+    operation = data.get("operation")
+    significat_digits = data.get("significant_digits")
+    max_its = data.get("max_its")
+    x0 = data.get("x0")
+    x1 = data.get("x1")
+    xl = data.get("xl")
+    xu = data.get("xu")
+    Root = RootFinder()
 if __name__ == "__main__":
     app.run(debug=True)
