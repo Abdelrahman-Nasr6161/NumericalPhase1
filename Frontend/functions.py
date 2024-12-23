@@ -319,8 +319,8 @@ def send_to_backend_root(event , page : ft.Column):
 
     print(data)
 
-    # response = post("http://127.0.0.1:5000/rootFinder" , json=data)
-    # answer = response.json()
+    response = post("http://127.0.0.1:5000/roots" , json=data)
+    answer = response.json()
     # answer = {
     #     # 'result' : 3.2485,
     #     'result' : -0.00475896,
@@ -330,7 +330,7 @@ def send_to_backend_root(event , page : ft.Column):
     #     'time_taken' : 0.6,
     #     # 'error' : None,
     # }
-    # handleAnswerRoot(page , answer)
+    handleAnswerRoot(page , answer)
 
 
 def handleAnswerRoot(page : ft.Column, answer):
