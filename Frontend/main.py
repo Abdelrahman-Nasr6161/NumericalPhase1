@@ -124,7 +124,14 @@ def update_suboptions_root(event, page : ft.Page ):
         initial_x_row.controls.append(initial_x_label)
         initial_x_row.controls.append(x0_field)
 
+        if oper_type == 6:
+            x1_field = ft.TextField(hint_text="x-1", key="x-1", width=100, height=50 , on_change= lambda e : e.control.focus())
+            initial_x_row.controls.append(x1_field)
+
         suboptions_root.controls.append(initial_x_row)
+
+        
+
 
     suboptions_root.update()
 

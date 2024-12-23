@@ -223,6 +223,7 @@ def send_to_backend_root(event , page : ft.Column):
     epsilon = None
     iterations = None
     x0 = None
+    x1 = None #Secant 
     xl = None
     xu = None
 
@@ -282,6 +283,10 @@ def send_to_backend_root(event , page : ft.Column):
             x0 : ft.TextField = get_child(get_child(suboptions , "initial_x_row"), "x0")
             x0 = float(x0.value)
 
+            if oper_type == 6:
+                x1 : ft.TextField = get_child(get_child(suboptions , "initial_x_row"), "x-1")
+                x1 = float(x1.value)
+
         except: 
             error_message = "Please only enter numerals"          
         
@@ -307,6 +312,7 @@ def send_to_backend_root(event , page : ft.Column):
         "epsilon" : epsilon,
         "max_its" : iterations,
         "x0" : x0,
+        "x1" : x1,
         "xl" : xl,
         "xu" : xu,
     }
