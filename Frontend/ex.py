@@ -6,9 +6,6 @@ import threading
 import webview
 import numpy as np
 
-# Global variable to hold the webview window
-webview_window = None
-
 # Function to start the Dash app
 def start_dash(custom_function):
     app = dash.Dash(__name__)
@@ -18,7 +15,9 @@ def start_dash(custom_function):
     y = custom_function(x)  # Apply the custom function
 
     # Create the Plotly chart
-    fig = go.Figure(data=[go.Scatter(x=x, y=y, mode="lines", name="Custom Function")])
+    fig = go.Figure(data=[
+        go.Scatter(x=x, y=y, mode="lines", name="Custom Function")
+    ])
     fig.update_layout(title="Custom Function Plot")
 
     # Layout of the Dash app
@@ -32,12 +31,8 @@ def start_dash(custom_function):
 
 # Function to start the WebView
 def start_webview():
-    global webview_window
-    if webview_window:
-        webview_window.destroy()  # Close the old window if it exists
-    
-    # Create a new WebView window for the updated Dash app
-    webview_window = webview.create_window("Plotly Chart", "http://localhost:8050", width=800, height=600)
+    threading.current_thread().name = "MainThread"
+    webview.create_window("Plotly Chart", "http://localhost:8050", width=800, height=600)
     webview.start()
 
 # Function to start the Flet app
@@ -52,21 +47,15 @@ def start_flet():
             func_str = function_input.value
 
             try:
-                # Validate input (this approach is safer than using eval directly)
-                allowed_functions = ['x', 'np', 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt']
-                # Try parsing the function string safely
-                if any(func in func_str for func in allowed_functions):
-                    custom_function = eval(f"lambda x: {func_str}")
-                    
-                    # Start the Dash app with the custom function in a thread
-                    dash_thread = threading.Thread(target=start_dash, args=(custom_function,), daemon=True)
-                    dash_thread.start()
+                # Convert the string to a Python function
+                custom_function = eval(f"lambda x: {func_str}")
 
-                    # Start WebView to display the updated graph
-                    threading.Thread(target=start_webview, daemon=True).start()
-                else:
-                    result.value = "Error: Unsafe function entered."
-                    page.update()
+                # Start the Dash app with the custom function in a thread
+                dash_thread = threading.Thread(target=start_dash, args=(custom_function,), daemon=True)
+                dash_thread.start()
+
+                # Start WebView
+                threading.Thread(target=start_webview).start()
 
             except Exception as ex:
                 result.value = f"Error in function: {str(ex)}"
