@@ -247,6 +247,37 @@ def tab3():
 
     tab3.controls.append(suboptions)
 
+
+    graph_label = ft.Text(value="Enter the graph range", key="graph_label")
+    graph_input_1 = ft.TextField(
+        value = -50,
+        key = "graph_input_1",
+        width = 70,
+        on_change= lambda e : e.control.focus(),
+    )
+
+    graph_input_2 = ft.TextField(
+        value = 50,
+        key = "graph_input_2",
+        width = 70,
+        on_change= lambda e : e.control.focus(),
+    )
+
+    graph_button = ft.TextButton(
+        text="Show Graph",
+        key="graph_button_root",
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=4),
+            side=ft.BorderSide(color="cyan", width=2),
+        ),
+        on_click = lambda e : plot_function(e , tab3)
+    )
+
+    graph_row = ft.Row(controls=[graph_label, graph_input_1, graph_input_2, graph_button] , key="graph_row")
+    
+
+    tab3.controls.append(graph_row)
+
     submit_button = ft.TextButton(
         text="Answer",
         key="submit_button_root",
@@ -259,17 +290,6 @@ def tab3():
 
     tab3.controls.append(submit_button)
 
-    graph_button = ft.TextButton(
-        text="Show Graph",
-        key="graph_button_root",
-        style=ft.ButtonStyle(
-            shape=ft.RoundedRectangleBorder(radius=4),
-            side=ft.BorderSide(color="cyan", width=2),
-        ),
-        on_click = lambda e : plot_function(e , tab3)
-    )
-
-    tab3.controls.append(graph_button)
     return tab3
 
 
