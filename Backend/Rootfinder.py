@@ -96,61 +96,97 @@ class RootFinder:
                 "significant_figures": correct_sfs,
             }
     def newtonRaphson(self,f,initialGuess,minRelativeError,MaxItretion):
-        parsedF=parse_expr(f ,transformations="all")
-
-        x = symbols('x')
-        
         try:
-            finalF = sympify(parsedF)  # Replace ^ with ** for Python syntax
-            print(finalF)
-        except Exception as e:
-            print(f"Invalid function: {e}")
-            exit()   
+            start = time.time()
+            parsedF=parse_expr(f ,transformations="all")
 
-        diffF= diff(finalF, x)    
+            x = symbols('x')
+            
+            try:
+                finalF = sympify(parsedF)  # Replace ^ with ** for Python syntax
+                print(finalF)
+            except Exception as e:
+                print(f"Invalid function: {e}")
+                exit()   
 
-        xi=initialGuess
-        for i in range(MaxItretion):
-            f_value_at_point = finalF.subs(x, xi)
-            diffF_at_point = diffF.subs(x, xi)
-                
-            xi2=xi-(f_value_at_point/diffF_at_point)
-            if(xi==0 or abs(xi2-xi)/xi<=minRelativeError):
-                return xi2
-            xi=xi2
+            diffF= diff(finalF, x)    
 
-        return xi2     
+            xi=initialGuess
+            for i in range(MaxItretion):
+                f_value_at_point = finalF.subs(x, xi)
+                diffF_at_point = diffF.subs(x, xi)
+                    
+                xi2=xi-(f_value_at_point/diffF_at_point)
+                if(True):
+                    error=0
+                    if xi==0:
+                        error=0
+                    else:
+                        error=abs((xi2-xi)/xi)
+                    end = time.time()
+                    elapsed = end - start
+                    correct_sfs = -int(sp.log(error, 10).evalf()) if error > 0 else 0
+                    return {
+                        "root": float(xi2),
+                        "iterations": i+1,
+                        "relative_error": float(error),
+                        "time_taken": elapsed,
+                        "significant_figures": correct_sfs,
+                    }
+                xi=xi2
+
+            raise ConvergenceError("The method did not converge within the maximum number of iterations.")
+        except:
+            return f"Invalid function expression: {e}"
     
     def ModifiedNewtonRaphson(self,f,initialGuess,minRelativeError,MaxItretion):
-        parsedF=parse_expr(f ,transformations="all")
-
-        x = symbols('x')
-        
         try:
-            finalF = sympify(parsedF)  # Replace ^ with ** for Python syntax
-        except Exception as e:
-            print(f"Invalid function: {e}")
-            exit()   
+            start = time.time()
+            parsedF=parse_expr(f ,transformations="all")
 
-        diffF= diff(finalF, x)    
-        doubleDiffF =diff(diffF,x)
-        
-        xi=initialGuess
-        for i in range(MaxItretion):
-            f_value_at_point = finalF.subs(x, xi)
-            diffF_at_point = diffF.subs(x, xi)
-            doubleDiffF_at_point = doubleDiffF.subs(x, xi)
-            if not f_value_at_point==0: 
-                xi2=xi-((f_value_at_point*diffF_at_point)/((diffF_at_point)**2-(f_value_at_point*doubleDiffF_at_point)))
+            x = symbols('x')
+            
+            try:
+                finalF = sympify(parsedF)  # Replace ^ with ** for Python syntax
+            except Exception as e:
+                print(f"Invalid function: {e}")
+                exit()   
 
-            else:
-                xi2=xi
+            diffF= diff(finalF, x)    
+            doubleDiffF =diff(diffF,x)
+            
+            xi=initialGuess
+            for i in range(MaxItretion):
+                f_value_at_point = finalF.subs(x, xi)
+                diffF_at_point = diffF.subs(x, xi)
+                doubleDiffF_at_point = doubleDiffF.subs(x, xi)
+                if not f_value_at_point==0: 
+                    xi2=xi-((f_value_at_point*diffF_at_point)/((diffF_at_point)**2-(f_value_at_point*doubleDiffF_at_point)))
 
-            if not xi==0 or xi==xi2:
-                if(xi==xi2 or abs((xi2-xi)/xi)<=minRelativeError):
-                    return xi2
-            xi=xi2
-        return xi2 
+                else:
+                    xi2=xi
+
+                if not xi==0 or xi==xi2:
+                    if(xi==xi2 or abs((xi2-xi)/xi)<=minRelativeError):
+                        error=0
+                        if xi==0:
+                            error=0
+                        else:
+                            error=abs((xi2-xi)/xi)
+                        end = time.time()
+                        elapsed = end - start
+                        correct_sfs = -int(sp.log(error, 10).evalf()) if error > 0 else 0
+                        return {
+                            "root": float(xi2),
+                            "iterations": i+1,
+                            "relative_error": float(error),
+                            "time_taken": elapsed,
+                            "significant_figures": correct_sfs,
+                        }
+                xi=xi2
+            raise ConvergenceError("The method did not converge within the maximum number of iterations.")
+        except:
+            return f"Invalid function expression: {e}" 
     
     def fixedPointMethod(self, g_exp, initial_guess, eps=1e-5, max_it=50):
         try:
