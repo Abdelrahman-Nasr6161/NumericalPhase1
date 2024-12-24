@@ -328,7 +328,7 @@ def send_to_backend_root(event , page : ft.Column):
         result = answer["result"]
 
     elif "error" in answer:
-        result = answer["error"]
+        result = answer
 
     # answer = {
     #     # 'root' : 3.2485,
@@ -398,9 +398,9 @@ def handleAnswerRoot(page : ft.Column, answer):
         dialog_content.controls.append(text)
 
     if "error" in answer:
+        dialog_content.controls.clear()
         error = answer["error"]
         error_text = ft.Text(value=f"Error: {error}", size=24, color="red")
-        dialog_content.controls.clear()
         dialog_content.controls.append(error_text)
 
     dialog.content = dialog_content
