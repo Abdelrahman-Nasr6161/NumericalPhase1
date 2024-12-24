@@ -143,10 +143,10 @@ def root():
             return jsonify({"error" : result})
     elif operation == 5:
         try:
-            result = Root.ModifiedNewtonRaphson(function , xl , xu , epsilon , max_its)
+            result = Root.ModifiedNewtonRaphson(function , x0 , epsilon , max_its)
             return jsonify({"result" : result})
         except:
-            result = str(Root.ModifiedNewtonRaphson(function , xl , xu , epsilon , max_its))
+            result = str(Root.ModifiedNewtonRaphson(function , x0 , epsilon , max_its))
             return jsonify({"error" : result})
     elif operation == 6:
         try:
