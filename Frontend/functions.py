@@ -3,8 +3,10 @@ import numpy as np
 from requests import post
 from sympy import symbols, sympify, lambdify
 import plotly.graph_objects as go
-import webbrowser
-
+import dash
+from dash import dcc, html
+import threading
+import webview
 
 def get_child(controls , key):
     child = [control for control in controls.controls if control.key == key][0]
@@ -405,37 +407,62 @@ def handleAnswerRoot(page : ft.Column, answer):
     page.page.open(dialog)
     page.page.update()
 
+def start_webview():
+    threading.current_thread().name = "MainThread"
+    webview.create_window("Plotly Chart", "http://localhost:8050", width=800, height=600)
+    webview.start()
 
 def plot_function(event, page : ft.Column):
 
-    print("In")
+
     oper_type : ft.Dropdown = get_child(page , "operation_dropdown_root")
     oper_type = int(oper_type.value)
 
     function_string : ft.TextField = get_child(get_child(page, "function_input_col"), "funtion_input_string")
     function_string = function_string.value
-    print("In2")
-    plot_file, error = create_plot(function_string, oper_type)
-    print("In3")
-    if plot_file:
-        # Open the saved graph in the default web browser
-        webbrowser.open(plot_file)
-    else:
-        # Show error message
-        page.snack_bar = ft.SnackBar(ft.Text(f"Error: {error}"))
-        page.snack_bar.open = True
-        page.update()
 
+    x1 = get_child(get_child(page, "graph_row"), "graph_input_1")
+    x2 = get_child(get_child(page, "graph_row"), "graph_input_2")
 
-def create_plot(function_string, oper_type):
     try:
+        x1 = round(float(x1.value))
+        x2 = round(float(x2.value))
+    except:
+        print("Graph range exception")
+
+    
+    dash_thread = threading.Thread(target=create_plot, args=(function_string, x1, x2, oper_type), daemon=True)
+    dash_thread.start()
+    # Start WebView
+    threading.Thread(target=start_webview).start()
+
+    # plot_file, error = create_plot(function_string, x1, x2, oper_type)
+    # if plot_file:
+    #     # Open the saved graph in the default web browser
+    #     webbrowser.open(plot_file)
+    # else:
+    #     # Show error message
+    #     page.snack_bar = ft.SnackBar(ft.Text(f"Error: {error}"))
+    #     page.snack_bar.open = True
+    #     page.update()
+
+
+def create_plot(function_string, x1, x2, oper_type):
+    try:
+        print("About to run dash")
+        app = dash.Dash(__name__)
 
         x = symbols('x')
         
         func = sympify(function_string)
         func_num = lambdify(x, func, modules=["numpy"])
         
-        x_vals = np.linspace(-100, 100, 2000)
+        resolution = 100  # Points per unit
+        num_points = int(abs(x2 - x1) * resolution)
+        
+        # Generate x values and calculate y values
+        x_vals = np.linspace(x1, x2, max(num_points, 2))
+        # x_vals = np.linspace(50, 50)
         y_vals = func_num(x_vals)
         
         fig = go.Figure()
@@ -466,9 +493,16 @@ def create_plot(function_string, oper_type):
             template="plotly_white",
         )
         
-        plot_file = "plot.html"
-        fig.write_html(plot_file)
-        return plot_file, None
+        app.layout = html.Div(children=[
+            html.H1("Dynamic Function Plot", style={"text-align": "center"}),
+            dcc.Graph(figure=fig)  # Interactive Plotly chart
+        ])
+
+        app.run_server(debug=False, port=8050, use_reloader=False)
+           
+        # plot_file = "plot.html"
+        # fig.write_html(plot_file)
+        # return plot_file, None
     
     except Exception as e:
-        return None, str(e)
+        return str(e)
