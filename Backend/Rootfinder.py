@@ -117,7 +117,7 @@ class RootFinder:
                 diffF_at_point = diffF.subs(x, xi)
                     
                 xi2=xi-(f_value_at_point/diffF_at_point)
-                if(True):
+                if(xi==0 or abs((xi2-xi)/xi)<=minRelativeError):
                     error=0
                     if xi==0:
                         error=0
