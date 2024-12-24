@@ -2,7 +2,8 @@ import flet as ft
 import numpy as np
 from requests import post
 from sympy import symbols, sympify, lambdify
-
+import plotly.graph_objects as go
+import webbrowser
 
 
 def get_child(controls , key):
@@ -403,3 +404,71 @@ def handleAnswerRoot(page : ft.Column, answer):
     dialog.content = dialog_content
     page.page.open(dialog)
     page.page.update()
+
+
+def plot_function(event, page : ft.Column):
+
+    print("In")
+    oper_type : ft.Dropdown = get_child(page , "operation_dropdown_root")
+    oper_type = int(oper_type.value)
+
+    function_string : ft.TextField = get_child(get_child(page, "function_input_col"), "funtion_input_string")
+    function_string = function_string.value
+    print("In2")
+    plot_file, error = create_plot(function_string, oper_type)
+    print("In3")
+    if plot_file:
+        # Open the saved graph in the default web browser
+        webbrowser.open(plot_file)
+    else:
+        # Show error message
+        page.snack_bar = ft.SnackBar(ft.Text(f"Error: {error}"))
+        page.snack_bar.open = True
+        page.update()
+
+
+def create_plot(function_string, oper_type):
+    try:
+
+        x = symbols('x')
+        
+        func = sympify(function_string)
+        func_num = lambdify(x, func, modules=["numpy"])
+        
+        x_vals = np.linspace(-100, 100, 2000)
+        y_vals = func_num(x_vals)
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=x_vals, y=y_vals, mode='lines', name=f'f(x) = {function_string}'))
+        
+        # Add y = x if operation is fixed-point
+        if oper_type == 3:
+            fig.add_trace(go.Scatter(x=x_vals, y=x_vals, mode='lines', name='y = x', line=dict(dash='dash')))
+                
+        fig.update_layout(
+            title="Graph of the Function",
+            xaxis=dict(
+                title="x",
+                zeroline=True,
+                zerolinecolor="black",
+                showline=True,
+                linecolor="black",
+                mirror=True
+            ),
+            yaxis=dict(
+                title="f(x)",
+                zeroline=True,
+                zerolinecolor="black",
+                showline=True,
+                linecolor="black",
+                mirror=True
+            ),
+            template="plotly_white",
+        )
+        
+        plot_file = "plot.html"
+        fig.write_html(plot_file)
+        return plot_file, None
+    
+    except Exception as e:
+        return None, str(e)

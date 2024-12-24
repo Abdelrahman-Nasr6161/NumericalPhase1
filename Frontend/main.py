@@ -1,5 +1,5 @@
 import flet as ft
-from functions import alphaBackend, send_to_backend, get_child, send_to_backend_root
+from functions import alphaBackend, send_to_backend, get_child, send_to_backend_root, plot_function
 
 def addCells(size, matrix):
     for i in range(size):
@@ -258,6 +258,18 @@ def tab3():
     )
 
     tab3.controls.append(submit_button)
+
+    graph_button = ft.TextButton(
+        text="Show Graph",
+        key="graph_button_root",
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=4),
+            side=ft.BorderSide(color="cyan", width=2),
+        ),
+        on_click = lambda e : plot_function(e , tab3)
+    )
+
+    tab3.controls.append(graph_button)
     return tab3
 
 
