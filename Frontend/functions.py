@@ -7,6 +7,14 @@ import dash
 from dash import dcc, html
 import threading
 import webview
+import threading
+import webview
+import numpy as np
+import dash
+from dash import dcc, html
+from sympy import symbols, lambdify, sympify
+import plotly.graph_objects as go
+import queue
 
 def get_child(controls , key):
     child = [control for control in controls.controls if control.key == key][0]
@@ -407,71 +415,74 @@ def handleAnswerRoot(page : ft.Column, answer):
     page.page.open(dialog)
     page.page.update()
 
-def start_webview():
-    threading.current_thread().name = "MainThread"
-    webview.create_window("Plotly Chart", "http://localhost:8050", width=800, height=600)
-    webview.start()
+    # Queue for communication between the main app and Dash
+    update_queue = queue.Queue()
 
-def plot_function(event, page : ft.Column):
-
-
-    oper_type : ft.Dropdown = get_child(page , "operation_dropdown_root")
-    oper_type = int(oper_type.value)
-
-    function_string : ft.TextField = get_child(get_child(page, "function_input_col"), "funtion_input_string")
-    function_string = function_string.value
-
-    x1 = get_child(get_child(page, "graph_row"), "graph_input_1")
-    x2 = get_child(get_child(page, "graph_row"), "graph_input_2")
-
-    try:
-        x1 = round(float(x1.value))
-        x2 = round(float(x2.value))
-    except:
-        print("Graph range exception")
-
-    
-    dash_thread = threading.Thread(target=create_plot, args=(function_string, x1, x2, oper_type), daemon=True)
-    dash_thread.start()
-    # Start WebView
-    threading.Thread(target=start_webview).start()
-
-    # plot_file, error = create_plot(function_string, x1, x2, oper_type)
-    # if plot_file:
-    #     # Open the saved graph in the default web browser
-    #     webbrowser.open(plot_file)
-    # else:
-    #     # Show error message
-    #     page.snack_bar = ft.SnackBar(ft.Text(f"Error: {error}"))
-    #     page.snack_bar.open = True
-    #     page.update()
-
-
+    # Global variables for WebView management
+    webview_window = None
+    webview_open = False
+# Function to start the Dash app
+def start_dash_app():
+    app = dash.Dash(__name__)
+    app.title = "Dynamic Function Plot"
+    # Initial empty figure
+    app.layout = html.Div(children=[
+        html.H1("Dynamic Function Plot", style={"text-align": "center"}),
+        dcc.Graph(id="graph", figure=go.Figure()),
+        dcc.Interval(id="interval", interval=1000, n_intervals=0)  # Check for updates every second
+    ])
+    # Callback to update the chart when new data is available
+    @app.callback(
+        dash.dependencies.Output("graph", "figure"),
+        [dash.dependencies.Input("interval", "n_intervals")]
+    )
+    def update_chart(n):
+        try:
+            # Check if a new function is in the queue
+            plot_data = update_queue.get_nowait()
+            return plot_data
+        except queue.Empty:
+            return dash.no_update
+    app.run_server(debug=False, port=8050, use_reloader=False)
+# Function to start or redisplay the WebView
+def start_or_redisplay_webview():
+    global webview_window, webview_open
+    if not webview_open:
+        webview_open = True
+        threading.current_thread().name = "MainThread"
+        webview_window = webview.create_window("Plotly Chart", "http://localhost:8050", width=800, height=600)
+        webview.start()
+        webview_open = False  # Reset when WebView exits
+              
+# Function to handle plot generation from an event
+def plot_function(event, page):  
+    # Example call to create_plot with placeholders for function, range, and type
+    print(page.controls[0].controls[1].value)
+    function_string = page.controls[0].controls[1].value
+    x1, x2 = -10, 10  # Replace with actual range
+    oper_type = 1  # Replace with actual operation type
+    create_plot(function_string, x1, x2, oper_type)
+    page.update()
+# Function to create and enqueue a plot
 def create_plot(function_string, x1, x2, oper_type):
     try:
-        print("About to run dash")
-        app = dash.Dash(__name__)
-
+        print("About to generate plot data")
+        # Parse and generate the function
         x = symbols('x')
-        
         func = sympify(function_string)
         func_num = lambdify(x, func, modules=["numpy"])
-        
+        # Generate x and y values
         resolution = 100  # Points per unit
         num_points = int(abs(x2 - x1) * resolution)
-        
-        # Generate x values and calculate y values
         x_vals = np.linspace(x1, x2, max(num_points, 2))
-        # x_vals = np.linspace(50, 50)
         y_vals = func_num(x_vals)
-        
+        # Create Plotly figure
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=x_vals, y=y_vals, mode='lines', name=f'f(x) = {function_string}'))
-        
         # Add y = x if operation is fixed-point
         if oper_type == 3:
             fig.add_trace(go.Scatter(x=x_vals, y=x_vals, mode='lines', name='y = x', line=dict(dash='dash')))
-                
+        # Customize layout
         fig.update_layout(
             title="Graph of the Function",
             xaxis=dict(
@@ -492,17 +503,16 @@ def create_plot(function_string, x1, x2, oper_type):
             ),
             template="plotly_white",
         )
-        
-        app.layout = html.Div(children=[
-            html.H1("Dynamic Function Plot", style={"text-align": "center"}),
-            dcc.Graph(figure=fig)  # Interactive Plotly chart
-        ])
-
-        app.run_server(debug=False, port=8050, use_reloader=False)
-           
-        # plot_file = "plot.html"
-        # fig.write_html(plot_file)
-        # return plot_file, None
-    
+        # Enqueue the new figure for Dash
+        update_queue.put(fig)
+        # Ensure the WebView window is displayed
+        threading.Thread(target=start_or_redisplay_webview, daemon=True).start()
     except Exception as e:
-        return str(e)
+       print(f"Error in creating plot: {e}")
+
+update_queue = queue.Queue()
+
+# Global variable to manage WebView state
+webview_window = None
+webview_open = False
+threading.Thread(target=start_dash_app, daemon=True).start()
