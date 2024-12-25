@@ -2,6 +2,7 @@ import flet as ft
 import numpy as np
 from requests import post
 from sympy import symbols, sympify, lambdify
+from sympy.parsing.sympy_parser import parse_expr
 import plotly.graph_objects as go
 import dash
 from dash import dcc, html
@@ -246,7 +247,8 @@ def send_to_backend_root(event , page : ft.Column):
     # Works Correct
     try:
         function_string : ft.TextField = get_child(get_child(page, "function_input_col"), "funtion_input_string")
-        function_string = function_string.value
+        function_string = function_string.value        
+        function_string = str(parse_expr(function_string, transformations="all"))
         x = symbols('x')
         function_sympy = sympify(function_string)
 
@@ -392,7 +394,7 @@ def handleAnswerRoot(page : ft.Column, answer):
 
     if "relative_error" in answer:
         eps_a = answer['relative_error']
-        text = ft.Text(size=24 , value=f"Approximate relative error = {eps_a}")
+        text = ft.Text(size=24 , value=f"Approximate relative error = {eps_a:.{significant_digits}g}")
         dialog_content.controls.append(text)
 
     if "significant_figures" in answer:
@@ -402,7 +404,7 @@ def handleAnswerRoot(page : ft.Column, answer):
 
     if 'time_taken' in answer:
         time  = answer['time_taken']
-        text = ft.Text(size=24 , value=f"Time taken = {time}")
+        text = ft.Text(size=24 , value=f"Time taken = {time:.{significant_digits}g}")
         dialog_content.controls.append(text)
 
     if "error" in answer:
@@ -463,7 +465,7 @@ def plot_function(event, page):
     # Example call to create_plot with placeholders for function, range, and type
     print(page.controls[0].controls[1].value)
     function_string = page.controls[0].controls[1].value
-
+    function_string = parse_expr(function_string, transformations="all")
     oper_type : ft.Dropdown = get_child(page , "operation_dropdown_root")
     oper_type = int(oper_type.value)
 
