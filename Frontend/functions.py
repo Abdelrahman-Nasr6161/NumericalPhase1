@@ -428,7 +428,11 @@ def start_dash_app():
     # Initial empty figure
     app.layout = html.Div(children=[
         html.H1("Dynamic Function Plot", style={"text-align": "center"}),
-        dcc.Graph(id="graph", figure=go.Figure()),
+        dcc.Graph(id="graph", 
+                  figure=go.Figure(),
+                  style={"width": "100%", "height": "calc(100vh - 100px)"} , 
+        ),
+        
         dcc.Interval(id="interval", interval=1000, n_intervals=0)  # Check for updates every second
     ])
     # Callback to update the chart when new data is available
