@@ -250,14 +250,14 @@ def tab3():
 
     graph_label = ft.Text(value="Enter the graph range", key="graph_label")
     graph_input_1 = ft.TextField(
-        value = -50,
+        value = -30,
         key = "graph_input_1",
         width = 70,
         on_change= lambda e : e.control.focus(),
     )
 
     graph_input_2 = ft.TextField(
-        value = 50,
+        value = 30,
         key = "graph_input_2",
         width = 70,
         on_change= lambda e : e.control.focus(),

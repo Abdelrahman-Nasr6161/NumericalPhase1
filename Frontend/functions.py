@@ -459,8 +459,19 @@ def plot_function(event, page):
     # Example call to create_plot with placeholders for function, range, and type
     print(page.controls[0].controls[1].value)
     function_string = page.controls[0].controls[1].value
-    x1, x2 = -10, 10  # Replace with actual range
-    oper_type = 1  # Replace with actual operation type
+
+    oper_type : ft.Dropdown = get_child(page , "operation_dropdown_root")
+    oper_type = int(oper_type.value)
+
+    x1 = get_child(get_child(page, "graph_row"), "graph_input_1")
+    x2 = get_child(get_child(page, "graph_row"), "graph_input_2")
+
+    try:
+        x1 = round(float(x1.value))
+        x2 = round(float(x2.value))
+    except:
+        print("Graph range exception")
+
     create_plot(function_string, x1, x2, oper_type)
     page.update()
 # Function to create and enqueue a plot
