@@ -2,6 +2,7 @@ import flet as ft
 import numpy as np
 from requests import post
 from sympy import symbols, sympify, lambdify
+import sympy
 from sympy.parsing.sympy_parser import parse_expr
 import plotly.graph_objects as go
 import dash
@@ -486,19 +487,43 @@ def create_plot(function_string, x1, x2, oper_type):
         print("About to generate plot data")
         # Parse and generate the function
         x = symbols('x')
+        
+        # Convert string to SymPy expression
         func = sympify(function_string)
+        
+        # Replace 'e' (Euler's number) with its numerical value
+        func = func.subs(sympy.E, sympy.exp(1))
+        
+        # Convert to a NumPy-compatible function
         func_num = lambdify(x, func, modules=["numpy"])
+        
+        # Validate range to avoid excessively large or small numbers
+        if abs(x2 - x1) > 1000:
+            raise ValueError("The range of x is too large. Please use a smaller range.")
+        
         # Generate x and y values
         resolution = 100  # Points per unit
         num_points = int(abs(x2 - x1) * resolution)
         x_vals = np.linspace(x1, x2, max(num_points, 2))
-        y_vals = func_num(x_vals)
+        
+        # Safely compute y values
+        try:
+            y_vals = func_num(x_vals)
+        except Exception as calc_error:
+            raise ValueError(f"Error while evaluating the function: {calc_error}")
+        
+        # Check for infinite or NaN values
+        if not np.isfinite(y_vals).all():
+            raise ValueError("The function produces non-finite values (inf or NaN) in the given range.")
+        
         # Create Plotly figure
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=x_vals, y=y_vals, mode='lines', name=f'f(x) = {function_string}'))
+        
         # Add y = x if operation is fixed-point
         if oper_type == 3:
             fig.add_trace(go.Scatter(x=x_vals, y=x_vals, mode='lines', name='y = x', line=dict(dash='dash')))
+        
         # Customize layout
         fig.update_layout(
             title="Graph of the Function",
@@ -520,12 +545,18 @@ def create_plot(function_string, x1, x2, oper_type):
             ),
             template="plotly_white",
         )
+        
         # Enqueue the new figure for Dash
         update_queue.put(fig)
+        
         # Ensure the WebView window is displayed
         threading.Thread(target=start_or_redisplay_webview, daemon=True).start()
+    
+    except ValueError as ve:
+        print(f"Input validation error: {ve}")
     except Exception as e:
-       print(f"Error in creating plot: {e}")
+        print(f"Error in creating plot: {e}")
+
 
 update_queue = queue.Queue()
 
