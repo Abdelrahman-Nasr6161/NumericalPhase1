@@ -226,7 +226,7 @@ class RootFinder:
                 "iterations": iteration + 1,
                 "relative_error": relative_error,
                 "significant_figures": correct_sfs,
-                "execution_time": execution_time,
+                "time_taken": execution_time,
             }
         except Exception as e:
             return {f"An error occurred during computation: {e}"}
@@ -274,7 +274,7 @@ class RootFinder:
                 "iterations": iteration + 1,
                 "relative_error": relative_error,
                 "significant_figures": correct_sfs,
-                "execution_time": execution_time,
+                "time_taken": execution_time,
             }
         except Exception as e:
             return {f"An error occurred during computation: {e}"}
